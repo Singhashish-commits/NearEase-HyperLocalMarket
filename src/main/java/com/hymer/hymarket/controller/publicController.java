@@ -11,7 +11,6 @@ import java.util.List;
 @RestController
 @CrossOrigin
 @RequestMapping("/api/public/")
-
 public class publicController {
     private PublicService publicService;
     @Autowired

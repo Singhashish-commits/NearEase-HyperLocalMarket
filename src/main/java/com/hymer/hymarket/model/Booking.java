@@ -13,7 +13,7 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
-    @JoinColumn(name="customer_id") // who is booking
+    @JoinColumn(name="customer_id",nullable = false) // who is booking
     private User customer;
 
 

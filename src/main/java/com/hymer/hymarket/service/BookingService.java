@@ -49,6 +49,7 @@ public class BookingService{
         booking.setScheduleTime(bookingRequestDto.getScheduleTime());
         booking.setWorkLocation(bookingRequestDto.getWorkLocation());
         Booking SavedBooking = bookingRepo.save(booking);
+
         return mapBookingDto(SavedBooking);
     }
 
@@ -66,14 +67,19 @@ public class BookingService{
 
         // Mapping the Customer
         User customer = booking.getCustomer();
-        UserProfileDto userProfile = new UserProfileDto();
-        userProfile.setId(customer.getId());
-        userProfile.setFirstName(customer.getFirstName());
-        userProfile.setLastName(customer.getLastName());
-        userProfile.setEmail(customer.getEmail());
-        userProfile.setPhone(customer.getPhoneNumber());
-        //Mapping the user who booked to teh dto of the booking Response
-        bookingResponseDto.setCustomer(userProfile);
+      if(customer != null){
+          UserProfileDto userProfile = new UserProfileDto();
+          userProfile.setId(customer.getId());
+          userProfile.setFirstName(customer.getFirstName());
+          userProfile.setLastName(customer.getLastName());
+          userProfile.setEmail(customer.getEmail());
+          userProfile.setPhone(customer.getPhoneNumber());
+          //Mapping the user who booked to teh dto of the booking Response
+          bookingResponseDto.setCustomer(userProfile);
+      }
+      else{
+          System.out.println(" booking id "+ booking.getId()+" has no customer ");
+      }
 
         // Map the provider Profile
         ProviderProfileDto providerProfileDto = getProviderProfileDto(booking);
@@ -116,44 +122,36 @@ public class BookingService{
     }
 
     public List<BookingResponseDto> providerBookings(){
-        System.out.println("here we are in the Service layer");
         // booking that the provider got from the customer
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException(" User Not Found"));
-        System.out.println("The current user is "+user.getId());
-        System.out.println("The name of the user is "+ user.getFirstName());
         if(user.getProviderProfile()==null) throw new RuntimeException("Provider Profile Not Found");
-        System.out.println("the provider Profile is "+ user.getProviderProfile().getId());
-
         List<Booking> bookings = bookingRepo.findByProviderId(user.getProviderProfile().getId());
-        System.out.println("the provider Profile is "+ user.getProviderProfile().getId());
-
         return bookings.stream()
                     .map(this ::mapBookingDto)
                     .collect(Collectors.toList());
 
     }
 
-    public BookingResponseDto updateBookingStatus(Long bookingId, String newStatus){
+    public BookingResponseDto updateBookingStatus(Long bookingId, BookingStatus newStatus){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User currentUser = userRepository.findByEmail(email)
                 .orElseThrow(()-> new RuntimeException("User not found"));
-        // if this Booking Available
-        System.out.println("The current user is "+currentUser.getId());
         Booking booking = bookingRepo.findById(bookingId)
                 .orElseThrow(()-> new RuntimeException("Booking not found "));
        if(!booking.getProvider().getUser().getId().equals(currentUser.getId())){
            throw new RuntimeException("Not Authorized to manage this Booking");
        }
         // Are use Authorized to manage this booking
-        try{
-            BookingStatus newStatusEnum = BookingStatus.valueOf(newStatus.toUpperCase());
-            booking.setBookingStatus(newStatusEnum);
-
-        }catch(IllegalArgumentException e){
-            throw new RuntimeException("Invalid Status , Use CONFIRMED,REJECTED,or COMPLETED");
-
-        }
+//        try{
+//            BookingStatus newStatusEnum = BookingStatus.valueOf(newStatus);
+//            booking.setBookingStatus(newStatusEnum);
+//
+//        }catch(IllegalArgumentException e){
+//            throw new RuntimeException("Invalid Status , Use CONFIRMED,REJECTED,or COMPLETED");
+//
+//        }
+        booking.setBookingStatus(newStatus);
         Booking updatedBooking = bookingRepo.save(booking);
         return mapBookingDto(updatedBooking);
 

@@ -1,6 +1,4 @@
 package com.hymer.hymarket.controller;
-
-import com.hymer.hymarket.dto.ApiResponse;
 import com.hymer.hymarket.service.AdminService;
 import com.hymer.hymarket.service.ProviderProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
