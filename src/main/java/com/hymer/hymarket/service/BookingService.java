@@ -142,15 +142,6 @@ public class BookingService{
        if(!booking.getProvider().getUser().getId().equals(currentUser.getId())){
            throw new RuntimeException("Not Authorized to manage this Booking");
        }
-        // Are use Authorized to manage this booking
-//        try{
-//            BookingStatus newStatusEnum = BookingStatus.valueOf(newStatus);
-//            booking.setBookingStatus(newStatusEnum);
-//
-//        }catch(IllegalArgumentException e){
-//            throw new RuntimeException("Invalid Status , Use CONFIRMED,REJECTED,or COMPLETED");
-//
-//        }
         booking.setBookingStatus(newStatus);
         Booking updatedBooking = bookingRepo.save(booking);
         return mapBookingDto(updatedBooking);
