@@ -10,14 +10,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @RestController
 @CrossOrigin
-@RequestMapping("/api/public/")
+@RequestMapping("/api/public")
 public class publicController {
     private PublicService publicService;
     @Autowired
     public void setPublicService(PublicService publicService) {
         this.publicService = publicService;
     }
-    @GetMapping("/categories")
+    @GetMapping("/categories/")
     public List<ServiceCategory>  getServiceCategories(){
         return publicService.getAllCategory();
 
@@ -28,7 +28,7 @@ public class publicController {
         return publicService.getAllServiceType(categoryName);
 
     }
-    @GetMapping("type/{typeId}/offering")
+    @GetMapping("/type/{typeId}/offering")
     public List<ServiceOfferingResponse> getServiceOffering(@PathVariable Long typeId){
         return publicService.getOfferingByTypeId(typeId);
     }

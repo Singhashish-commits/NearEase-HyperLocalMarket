@@ -3,6 +3,7 @@ package com.hymer.hymarket.exception;
 import com.hymer.hymarket.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -50,6 +51,14 @@ public class GlobalExceptionHandler {
        ex.printStackTrace();
        return new ResponseEntity<>(errorResponse,HttpStatus.INTERNAL_SERVER_ERROR);
    }
+
+    @ExceptionHandler(MailException.class)
+    public ResponseEntity<String> handleMailException(MailException e){
+       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable TO send email, please try again later");
+    }
+
+
+
 
 
 

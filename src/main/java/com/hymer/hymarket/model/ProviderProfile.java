@@ -2,11 +2,9 @@ package com.hymer.hymarket.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+@Data
 @Getter
 @Setter
 @Entity
@@ -34,6 +32,9 @@ public class ProviderProfile {
     public ProviderProfile(User user) {
         this.user = user;
     }
+
+    private Double averageRating= 0.0;
+    private Integer reviewCount =0;
 
 
 }

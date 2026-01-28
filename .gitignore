@@ -32,4 +32,7 @@ build/
 .vscode/
 ### Spring Boot ###
 src/main/resources/application.properties
+### macOS ###
+.DS_Store
+
 

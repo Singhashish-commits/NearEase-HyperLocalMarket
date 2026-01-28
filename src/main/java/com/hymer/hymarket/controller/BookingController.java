@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/bookings/")
+@RequestMapping("/api/bookingsb")
 public class BookingController {
     private  final BookingService bookingService;
     @Autowired

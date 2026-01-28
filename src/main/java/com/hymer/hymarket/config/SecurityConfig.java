@@ -1,5 +1,4 @@
 package com.hymer.hymarket.config;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -50,15 +49,14 @@ public class SecurityConfig {
         http.csrf(customizer-> customizer.disable());
         http.authorizeHttpRequests(requests -> requests
                 .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("api/public/**").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/reviews/provider/**").permitAll()
 //                .requestMatchers("/api/provider/**").hasRole("PROVIDER")
                 .anyRequest().authenticated())
 //                .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
-
             return http.build();
     }
 
