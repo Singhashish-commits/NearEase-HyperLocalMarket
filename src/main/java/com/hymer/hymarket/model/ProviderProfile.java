@@ -32,8 +32,9 @@ public class ProviderProfile {
     public ProviderProfile(User user) {
         this.user = user;
     }
-
+    @Column(nullable = false)
     private Double averageRating= 0.0;
+    @Column(nullable = false)
     private Integer reviewCount =0;
 
 

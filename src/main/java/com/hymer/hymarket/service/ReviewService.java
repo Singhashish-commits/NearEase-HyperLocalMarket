@@ -36,7 +36,6 @@ public class ReviewService {
         // Validate User before Proceeding
         String email = SecurityContextHolder.getContext()
                 .getAuthentication().getName();
-
         User currentUser = userRepository.findByEmail(email)
                 .orElseThrow(()-> new RuntimeException("User not found"));
 
@@ -64,6 +63,7 @@ public class ReviewService {
         review.setComment(comment);
         Review savedReview = reviewRepository.save(review);
         updateProviderStats(booking.getProvider(),rating);
+        System.out.println("Review saved");
         return savedReview;
 
     }
@@ -103,10 +103,12 @@ public class ReviewService {
     public List<ProviderResponseDto> getMyReviews(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(()-> new RuntimeException("User not found"));
+        System.out.println("User Found The The is "+user.getId());
 
         if(user.getProviderProfile()==null){
             throw new RuntimeException("You are not Provider ,Apply to be Provider To See Your Reviews");
         }
+        System.out.println("Provider Profile Found The is "+user.getProviderProfile().getId());
 //        return reviewRepository.findByBooking_Provider_Id(user.getProviderProfile().getId());
         Long providerId = user.getProviderProfile().getId();
         List<Review> reviews = reviewRepository.findByBooking_Provider_Id(providerId);
@@ -117,7 +119,7 @@ public class ReviewService {
                     dto.setRating(review.getRating());
                     dto.setComment(review.getComment());
 
-                    Booking booking = new Booking();
+                    Booking booking = review.getBooking();
                     dto.setBookingId(booking.getId());
                     dto.setBookingDate(booking.getBookingTime());
                     if(booking.getCustomer()!=null){
