@@ -32,7 +32,6 @@ public class Booking {
     private BookingStatus bookingStatus;
     private LocalDateTime bookingTime;
 
-
     @PrePersist
     private void onCreate(){
         this.bookingTime = LocalDateTime.now();

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -37,11 +38,24 @@ public class BookingController {
             return ResponseEntity.ok(bookingService.providerBookings());
     }
 
-    @PostMapping("/{bookingId}/status")
-    public ResponseEntity<?> updateBooking(@PathVariable Long bookingId, @RequestParam BookingStatus status){
+    @PutMapping("/{bookingId}/status")
+    public ResponseEntity<BookingResponseDto> updateBooking(@PathVariable Long bookingId, @RequestParam BookingStatus status){
             BookingResponseDto updatedBooking = bookingService.updateBookingStatus(bookingId, status);
             return ResponseEntity.ok(updatedBooking);
 
+    }
+
+    @PutMapping("/{bookingId}/complete")
+    public ResponseEntity<BookingResponseDto> completeBooking(@PathVariable Long bookingId, @RequestParam String otp){
+
+        BookingResponseDto response = bookingService.completeBookingWithOtp(bookingId, otp);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/resend-otp")
+    public ResponseEntity<?> resendOtp(@PathVariable Long id){
+        bookingService.resendOtp(id);
+        return ResponseEntity.ok(Map.of("message", "O New Otp Sent to the Customer email"));
     }
 
 

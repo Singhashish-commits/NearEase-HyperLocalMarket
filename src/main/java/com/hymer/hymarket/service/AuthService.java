@@ -4,6 +4,7 @@ import com.hymer.hymarket.Repository.UserRepository;
 import com.hymer.hymarket.dto.JwtResponse;
 import com.hymer.hymarket.dto.LoginRequest;
 import com.hymer.hymarket.dto.SignUpRequest;
+import com.hymer.hymarket.dto.SignUpResponseDto;
 import com.hymer.hymarket.model.Roles;
 import com.hymer.hymarket.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +15,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 
 @Service
 public class AuthService {
@@ -25,20 +28,55 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final  AuthenticationManager authenticationManager;
     private  final JwtService jwtService;
+    private final RedisService redisService;
+    private final MailService mailService;
 
     // Autowiring the object of classes from different classes
     @Autowired
-    public AuthService(UserRepository userRepo , PasswordEncoder passwordEncoder, RoleRepository roleRepository, AuthenticationManager authenticationManager, JwtService jwtService) {
+    public AuthService(UserRepository userRepo , PasswordEncoder passwordEncoder, RoleRepository roleRepository, AuthenticationManager authenticationManager, JwtService jwtService, RedisService redisService, MailService mailService) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.redisService = redisService;
+        this.mailService = mailService;
+    }
+    // for The random otp generation in more secure way
+    private final SecureRandom secureRandom = new SecureRandom();
+
+// Otp for SignUp
+    public void sendSignUpOtp(String email){
+        if(userRepo.existsByEmail(email)){
+            throw new RuntimeException("This Email is Already in use ,Please use another");
+        }
+        //generate otp ;
+        String otp = String.valueOf(100000+secureRandom.nextInt(900000));
+        redisService.saveValue("otp"+email, otp,5);
+        mailService.sendMail(email,"verify Your Mail","Your Otp is: "+otp);
 
     }
-// save user taking signup request
-    public void saveUser(SignUpRequest signUpRequest ) {
-       if(userRepo.existsByEmail((signUpRequest.getEmail()))){
+    // Validation of Otp
+    public void validateOtp(String email, String otp){
+        String redisKey = "otp"+email;
+        String checkedOtp = redisService.getValue(redisKey);
+        if(checkedOtp==null || !checkedOtp.equals(otp)){
+            throw new RuntimeException("Invalid Otp! Please try again");
+        }
+        redisService.deleteValue(redisKey);
+        redisService.saveValue("is_verified:"+email,"true",20);
+
+    }
+
+    // save user taking signup request and after verifying Otp;
+    public SignUpResponseDto saveUser(SignUpRequest signUpRequest ) {
+
+           String varificationStatus = redisService.getValue("is_verified:"+signUpRequest.getEmail());
+           if(varificationStatus==null || !varificationStatus.equals("true")){
+               throw new RuntimeException("Email not Verified! Please Verify Your Email");
+           }
+
+        if(userRepo.existsByEmail((signUpRequest.getEmail()))){
            throw new RuntimeException("Email already exists");
         }
         if(userRepo.existsByEmail(signUpRequest.getUsername())){
@@ -54,6 +92,7 @@ public class AuthService {
         Roles userRole = roleRepository.findByName("ROLE_USER").orElseThrow(() -> new RuntimeException("Role Not Found"));
         user.setRoles(Set.of(userRole));
         userRepo.save(user);
+        return new SignUpResponseDto("Registration Successful!","SUCCESS");
 
     }
 // Login for the already exist user

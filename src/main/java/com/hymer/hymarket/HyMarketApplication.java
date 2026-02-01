@@ -13,7 +13,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -84,18 +83,28 @@ public class HyMarketApplication {
                 admin.setPassword(passwordEncoder.encode("admin@123"));
                 admin.setPhoneNumber("0123456789");
                 admin.setUsername("adminAshish");
+                admin.setVerified(true);
 
                 Roles adminRole = roleRepository.findByName("ROLE_ADMIN")
-                        .orElseThrow(() -> new RuntimeException("Role Admin Not Found"));
+                        .orElseGet(() -> {
+                            Roles role = new Roles();
+                            role.setName("ROLE_ADMIN");
+                            return roleRepository.save(role);
+                        });
+
                 Roles adminAsUser = roleRepository.findByName("ROLE_USER")
-                        .orElseThrow(() -> new RuntimeException("Role User Not Found"));
+                        .orElseGet(() -> {
+                            Roles role = new Roles();
+                            role.setName("ROLE_USER");
+                            return roleRepository.save(role);
+                        });
                 Set<Roles> roles = new HashSet<>();
                 roles.add(adminRole);
                 roles.add(adminAsUser);
                 admin.setRoles(roles);
 
                 userRepository.save(admin);
-                System.out.println("--- ADMIN USER CREATED: admin123@gmail.com / admin123 ---");
+                System.out.println("--- ADMIN USER CREATED: admin123@gmail.com / admin@123 ---");
             }
 
         };
