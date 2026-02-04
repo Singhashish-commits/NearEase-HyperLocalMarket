@@ -55,7 +55,7 @@ public class AuthService {
         String hashedOtp = passwordEncoder.encode(otp);
         // will use the password encode here  to save the encoded Value
         redisService.saveValue("otp"+email, hashedOtp,10);
-        mailService.sendMail(email,"NearEase – Your OTP Verification Code \n","Your Otp is: "+otp," \n Valid For 10 Minutes");
+        mailService.sendMail(email,"NearEase – Your OTP Verification Code \n","Your Otp is: "+otp +"\n Please Dont Share with Others !"," \n Valid For 10 Minutes");
 
     }
     // Validation of Otp
@@ -71,7 +71,7 @@ public class AuthService {
             throw new RuntimeException(" Invalid Otp! Please try again ");
         }
         redisService.deleteValue(redisKey);
-        redisService.saveValue("is_verified: "+email," true ",20);
+        redisService.saveValue("is_verified:"+email,"true",20);
 
     }
     public void resendOtp(String email){
@@ -103,6 +103,7 @@ public class AuthService {
         user.setFirstName(signUpRequest.getFirstName());
         user.setLastName(signUpRequest.getLastName());
         user.setPhoneNumber(signUpRequest.getPhoneNUmber());
+        user.setVerified(true);
         user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         Roles userRole = roleRepository.findByName("ROLE_USER").orElseThrow(() -> new RuntimeException("Role Not Found"));
         user.setRoles(Set.of(userRole));
