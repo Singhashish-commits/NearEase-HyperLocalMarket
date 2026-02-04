@@ -14,14 +14,14 @@ public class MailService {
         this.mailSender = mailSender;
     }
 
-    public void sendMail(String to , String subject,String content,String AlertMessage){
+    public void sendMail(String to , String subject,String content,String alertMessage){
         try{
 //            MimeMessage mimeMessage = mailSender.createMimeMessage();
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom("ashish.singh.rajpoot02@gmail.com");
             message.setTo(to);
             message.setSubject(subject);
-            message.setText(content);
+            message.setText(content + "\n\n" + alertMessage);
             mailSender.send(message);
             System.out.println("Mail Sent Successfully to : "+ to);
         } catch (Exception e){
