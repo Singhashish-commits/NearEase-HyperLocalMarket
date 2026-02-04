@@ -25,6 +25,13 @@ public class AuthController {
         return ResponseEntity.ok("Otp Sent to the Email Successfully");
 
     }
+
+    @PostMapping("/resend-otp")
+    public ResponseEntity<String> resendOtp(@RequestBody OtpRequestDto otpRequestDto){
+        authService.resendOtp(otpRequestDto.getEmail());
+        return ResponseEntity.ok("Otp Sent to the Email Successfully");
+    }
+
     @PostMapping("/validate-otp")
     public ResponseEntity<String> validateOtp(@RequestBody OtpRequestDto otpRequestDto){
         authService.validateOtp(otpRequestDto.getEmail(),otpRequestDto.getOtp());

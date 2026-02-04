@@ -52,20 +52,35 @@ public class AuthService {
         }
         //generate otp ;
         String otp = String.valueOf(100000+secureRandom.nextInt(900000));
-        redisService.saveValue("otp"+email, otp,5);
-        mailService.sendMail(email,"verify Your Mail","Your Otp is: "+otp);
+        String hashedOtp = passwordEncoder.encode(otp);
+        // will use the password encode here  to save the encoded Value
+        redisService.saveValue("otp"+email, hashedOtp,10);
+        mailService.sendMail(email,"NearEase – Your OTP Verification Code \n","Your Otp is: "+otp," \n Valid For 10 Minutes");
 
     }
     // Validation of Otp
     public void validateOtp(String email, String otp){
+        // the otp we get here should be encoded
         String redisKey = "otp"+email;
-        String checkedOtp = redisService.getValue(redisKey);
-        if(checkedOtp==null || !checkedOtp.equals(otp)){
-            throw new RuntimeException("Invalid Otp! Please try again");
+        String  storedHashedOtp = redisService.getValue(redisKey);
+//        get the encoded password and match
+        if(storedHashedOtp==null){
+            throw new RuntimeException(" Otp Expired , Please Try Again ");
+        }
+        if(!passwordEncoder.matches(otp,storedHashedOtp)){
+            throw new RuntimeException(" Invalid Otp! Please try again ");
         }
         redisService.deleteValue(redisKey);
-        redisService.saveValue("is_verified:"+email,"true",20);
+        redisService.saveValue("is_verified: "+email," true ",20);
 
+    }
+    public void resendOtp(String email){
+        String resendKey = "Auth_otp:"+email;
+        if(redisService.getValue(resendKey) != null){
+            throw new RuntimeException(" please wait 1 Minute to resend Otp ");
+        }
+        redisService.saveValue(resendKey,"WAIT",1);
+        sendSignUpOtp(email);
     }
 
     // save user taking signup request and after verifying Otp;

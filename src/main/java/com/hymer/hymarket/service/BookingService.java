@@ -10,8 +10,9 @@ import com.hymer.hymarket.dto.UserProfileDto;
 import com.hymer.hymarket.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,16 +26,17 @@ public class BookingService{
     private  final UserRepository userRepository;
     private final MailService mailService;
     private final RedisService redisService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public BookingService(BookingRepo bookingRepo, ServiceOfferingRepo serviceOfferingRepo, UserRepository userRepository, MailService mailService, RedisService redisService) {
+    public BookingService(BookingRepo bookingRepo, ServiceOfferingRepo serviceOfferingRepo, UserRepository userRepository, MailService mailService, RedisService redisService, PasswordEncoder passwordEncoder) {
         this.bookingRepo = bookingRepo;
         this.serviceOfferingRepo = serviceOfferingRepo;
         this.userRepository = userRepository;
         this.mailService = mailService;
         this.redisService = redisService;
+        this.passwordEncoder = passwordEncoder;
     }
-
     // For the Otp generation used in generateAndSendOtp method  here
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -160,12 +162,15 @@ public class BookingService{
  private void generateAndSendOtp(Booking booking){
     int optValue = 1000+secureRandom.nextInt(9000);
     String otp = String.valueOf(optValue);
-    String redisKey = "booking_otp: " + booking.getId();
-    redisService.saveValue(redisKey,otp,10);
+    String hashedOtp= passwordEncoder.encode(otp);
+    String redisKey = "booking_otp:" + booking.getId();
+    redisService.saveValue(redisKey,hashedOtp,10);
 
     String subject = "Yor Service Otp (Valid for 10 minutes)";
-    String body = "Give This code to the Provider to Mark booking Confirmed";
-    mailService.sendMail(booking.getCustomer().getEmail(),subject,body);
+     String body = "Your OTP is: " + otp +
+             "\n\nGive this code to the provider to mark booking confirmed." +
+             "\n\nThis OTP is valid for 10 minutes.";
+    mailService.sendMail(booking.getCustomer().getEmail(),subject,body,"Valid for 10 min");
 
  }
 
@@ -182,12 +187,12 @@ public class BookingService{
         }
 
 
-        String redisKey = "Booking_otp: "+booking.getId();
-        String checkedOtp = redisService.getValue(redisKey);
-        if(checkedOtp==null){
+        String redisKey = "Booking_otp:"+booking.getId();
+        String hashedOtp = redisService.getValue(redisKey);
+        if(hashedOtp==null){
             throw new RuntimeException("Otp Expired ! please ask customer to resend  the Otp");
         }
-        if(!checkedOtp.equals(otp)){
+        if(passwordEncoder.matches(otp,hashedOtp)){
             throw new RuntimeException("Invalid Otp, Please try Again Later");
         }
 

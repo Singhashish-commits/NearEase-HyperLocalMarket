@@ -29,7 +29,7 @@ public class JwtService {
     // currently we are using the hardcoded secret key
 
     // we are not using the generate key currently
-    public String generateKey() { // it generates secret key
+    public String generateKey() { // it generates secret key // Reason we are not using it is bcz it generate the random keay each time
         try {
             KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
 
