@@ -50,8 +50,10 @@ public class SecurityConfig {
         http.authorizeHttpRequests(requests -> requests
                 .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/services/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/reviews/provider/**").permitAll()
+                        .requestMatchers("/api/images/**").permitAll()
 //                .requestMatchers("/api/provider/**").hasRole("PROVIDER")
                 .anyRequest().authenticated())
 //                .httpBasic(Customizer.withDefaults())

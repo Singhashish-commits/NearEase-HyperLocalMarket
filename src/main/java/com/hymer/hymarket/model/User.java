@@ -40,6 +40,8 @@ public class User {
     @Column(nullable = false)
     private String phoneNumber;
 
+    private String profilePictureImageUrl;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",

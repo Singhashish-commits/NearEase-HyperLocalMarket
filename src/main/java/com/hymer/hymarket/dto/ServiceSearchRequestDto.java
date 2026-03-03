@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ServiceSearchDto {
+public class ServiceSearchRequestDto {
     private String category;
     private Double minPrice;
     private Double maxPrice;
