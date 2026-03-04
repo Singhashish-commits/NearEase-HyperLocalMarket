@@ -1,9 +1,6 @@
 package com.hymer.hymarket.controller;
 
-import com.hymer.hymarket.dto.ApiResponse;
-import com.hymer.hymarket.dto.PasswordUpdateDto;
-import com.hymer.hymarket.dto.UserUpdateDto;
-import com.hymer.hymarket.dto.VerifyOtpDto;
+import com.hymer.hymarket.dto.*;
 import com.hymer.hymarket.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -47,14 +44,14 @@ public class UserController {
     }
 
     @PostMapping("request-email-update")
-    public ResponseEntity<ApiResponse> requestEmailUpdate(@RequestBody VerifyOtpDto verifyOtpDto) {
-        userService.updateEmailRequest(verifyOtpDto);
+    public ResponseEntity<ApiResponse> requestEmailUpdate(@RequestBody OtpRequestDto otpRequestDto) {
+        userService.updateEmailRequest(otpRequestDto);
         return ResponseEntity.ok(new ApiResponse(true, "Otp Sent to your new Email"));
     }
 
     @PostMapping("/verify-email-update")
-    public ResponseEntity<ApiResponse> verifyEmailUpdate(@RequestBody VerifyOtpDto verifyOtpDto) {
-      ApiResponse response = userService.verifyAndUpdateEmail(verifyOtpDto);
+    public ResponseEntity<ApiResponse> verifyEmailUpdate(@RequestBody OtpRequestDto otpRequestDto) {
+      ApiResponse response = userService.verifyAndUpdateEmail(otpRequestDto);
         return ResponseEntity.ok(response);
     }
 }

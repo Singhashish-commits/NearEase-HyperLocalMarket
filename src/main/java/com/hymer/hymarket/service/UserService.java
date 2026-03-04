@@ -1,10 +1,7 @@
 package com.hymer.hymarket.service;
 
 import com.hymer.hymarket.Repository.UserRepository;
-import com.hymer.hymarket.dto.ApiResponse;
-import com.hymer.hymarket.dto.PasswordUpdateDto;
-import com.hymer.hymarket.dto.UserUpdateDto;
-import com.hymer.hymarket.dto.VerifyOtpDto;
+import com.hymer.hymarket.dto.*;
 import com.hymer.hymarket.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -78,26 +75,26 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void updateEmailRequest(VerifyOtpDto verifyOtpDto) {
+    public void updateEmailRequest(OtpRequestDto otpRequestDto) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
-        if(userRepository.existsByEmail(verifyOtpDto.getEmail())) {
+        if(userRepository.existsByEmail(otpRequestDto.getEmail())) {
                     throw new RuntimeException("Email already exists by other user ");
         }
         String plainOtp = String.valueOf(100000 + secureRandom.nextInt(900000));
         String hashedOtp = passwordEncoder.encode(plainOtp);
-        redisService.saveValue("update_email"+verifyOtpDto.getEmail(),hashedOtp,10);
-        mailService.sendMail(verifyOtpDto.getEmail(), "verify your new Email",
+        redisService.saveValue("update_email"+otpRequestDto.getEmail(),hashedOtp,10);
+        mailService.sendMail(otpRequestDto.getEmail(), "verify your new Email",
                 "your OTP to update Your email is "+ plainOtp+ "\n valid fo r10 minutes ",
                 "team HY-market" );
 
     }
 
-    public ApiResponse verifyAndUpdateEmail(VerifyOtpDto verifyOtpDto) {
+    public ApiResponse verifyAndUpdateEmail(OtpRequestDto otpRequestDto) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
-        String plainOtp = verifyOtpDto.getOtp();
-        String redisKey = "update_email"+verifyOtpDto.getEmail();
+        String plainOtp = otpRequestDto.getOtp();
+        String redisKey = "update_email"+otpRequestDto.getEmail();
         String hashedOtp = redisService.getValue(redisKey);
         if(hashedOtp==null){
             throw new RuntimeException("OTP Expired Please Try again");
@@ -105,7 +102,7 @@ public class UserService {
         if(!passwordEncoder.matches(plainOtp,hashedOtp)) {
             throw new RuntimeException("Invalid OTP");
         }
-        user.setEmail(verifyOtpDto.getEmail());
+        user.setEmail(otpRequestDto.getEmail());
         String jwtToken = jwtService.generateToken(user.getEmail());
         userRepository.save(user);
 
