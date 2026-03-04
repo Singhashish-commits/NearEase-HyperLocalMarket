@@ -1,6 +1,7 @@
 package com.hymer.hymarket.service;
 
 import com.hymer.hymarket.Repository.UserRepository;
+import com.hymer.hymarket.dto.ApiResponse;
 import com.hymer.hymarket.dto.PasswordUpdateDto;
 import com.hymer.hymarket.dto.UserUpdateDto;
 import com.hymer.hymarket.dto.VerifyOtpDto;
@@ -20,14 +21,16 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final RedisService redisService;
     private final MailService mailService;
+    private final JwtService jwtService;
 
     @Autowired
-    public UserService(FileUploadService fileUploadService, UserRepository userRepository, PasswordEncoder passwordEncoder, RedisService redisService, MailService mailService) {
+    public UserService(FileUploadService fileUploadService, UserRepository userRepository, PasswordEncoder passwordEncoder, RedisService redisService, MailService mailService, JwtService jwtService) {
         this.fileUploadService = fileUploadService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.redisService = redisService;
         this.mailService = mailService;
+        this.jwtService = jwtService;
     }
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -90,7 +93,7 @@ public class UserService {
 
     }
 
-    public void verifyAndUpdateEmail(VerifyOtpDto verifyOtpDto) {
+    public ApiResponse verifyAndUpdateEmail(VerifyOtpDto verifyOtpDto) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
         String plainOtp = verifyOtpDto.getOtp();
@@ -99,13 +102,15 @@ public class UserService {
         if(hashedOtp==null){
             throw new RuntimeException("OTP Expired Please Try again");
         }
-        if(passwordEncoder.matches(plainOtp,hashedOtp)) {
+        if(!passwordEncoder.matches(plainOtp,hashedOtp)) {
             throw new RuntimeException("Invalid OTP");
         }
         user.setEmail(verifyOtpDto.getEmail());
+        String jwtToken = jwtService.generateToken(user.getEmail());
         userRepository.save(user);
 
         redisService.deleteValue(redisKey);
+        return new ApiResponse(true, jwtToken);
 
     }
 }

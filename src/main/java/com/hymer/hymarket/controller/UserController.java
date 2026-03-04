@@ -49,12 +49,12 @@ public class UserController {
     @PostMapping("request-email-update")
     public ResponseEntity<ApiResponse> requestEmailUpdate(@RequestBody VerifyOtpDto verifyOtpDto) {
         userService.updateEmailRequest(verifyOtpDto);
-        return ResponseEntity.ok(new ApiResponse(true, "Email verified successfully !!"));
+        return ResponseEntity.ok(new ApiResponse(true, "Otp Sent to your new Email"));
     }
 
     @PostMapping("/verify-email-update")
     public ResponseEntity<ApiResponse> verifyEmailUpdate(@RequestBody VerifyOtpDto verifyOtpDto) {
-        userService.verifyAndUpdateEmail(verifyOtpDto);
-        return ResponseEntity.ok(new ApiResponse(true, "Email verified successfully !!"));
+      ApiResponse response = userService.verifyAndUpdateEmail(verifyOtpDto);
+        return ResponseEntity.ok(response);
     }
 }
