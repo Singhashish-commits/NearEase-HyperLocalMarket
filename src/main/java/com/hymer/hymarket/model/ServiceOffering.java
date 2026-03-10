@@ -21,6 +21,8 @@ public class ServiceOffering {
     private ServiceType serviceType;
     private double price;
     private String description;
+    private String imageUrl; // for the image url to be stored
+
 
 
 }

@@ -5,8 +5,12 @@ import com.hymer.hymarket.dto.BookingResponseDto;
 import com.hymer.hymarket.model.BookingStatus;
 import com.hymer.hymarket.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -45,10 +49,15 @@ public class BookingController {
 
     }
 
-    @PutMapping("/{bookingId}/complete")
-    public ResponseEntity<BookingResponseDto> completeBooking(@PathVariable Long bookingId, @RequestParam String otp){
+    @PutMapping(value = "/{bookingId}/complete",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<BookingResponseDto> completeBooking(
+            @PathVariable Long bookingId,
+            @RequestParam String otp,
+            @RequestPart(value = "beforeImages",required = false)MultipartFile beforeImage,
+            @RequestPart(value = "afterImages", required =false) MultipartFile afterImage
+            ) throws IOException {
 
-        BookingResponseDto response = bookingService.completeBookingWithOtp(bookingId, otp);
+        BookingResponseDto response = bookingService.completeBookingWithOtp(bookingId, otp,beforeImage,afterImage);
         return ResponseEntity.ok(response);
     }
 

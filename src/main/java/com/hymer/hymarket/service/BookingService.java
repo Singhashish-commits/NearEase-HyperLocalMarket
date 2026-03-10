@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,15 +29,17 @@ public class BookingService{
     private final MailService mailService;
     private final RedisService redisService;
     private final PasswordEncoder passwordEncoder;
+    private final FileUploadService fileUploadService;
 
     @Autowired
-    public BookingService(BookingRepo bookingRepo, ServiceOfferingRepo serviceOfferingRepo, UserRepository userRepository, MailService mailService, RedisService redisService, PasswordEncoder passwordEncoder) {
+    public BookingService(BookingRepo bookingRepo, ServiceOfferingRepo serviceOfferingRepo, UserRepository userRepository, MailService mailService, RedisService redisService, PasswordEncoder passwordEncoder, FileUploadService fileUploadService) {
         this.bookingRepo = bookingRepo;
         this.serviceOfferingRepo = serviceOfferingRepo;
         this.userRepository = userRepository;
         this.mailService = mailService;
         this.redisService = redisService;
         this.passwordEncoder = passwordEncoder;
+        this.fileUploadService = fileUploadService;
     }
     // For the Otp generation used in generateAndSendOtp method  here
     private static final SecureRandom secureRandom = new SecureRandom();
@@ -72,6 +77,8 @@ public class BookingService{
         bookingResponseDto.setScheduledTime(booking.getScheduleTime());
         bookingResponseDto.setWorkLocation(booking.getWorkLocation());
         bookingResponseDto.setCostumerRequest(booking.getCustomerRequest());
+        bookingResponseDto.setBeforeImages(booking.getBeforeImages());
+        bookingResponseDto.setAfterImages(booking.getAfterImages());
         // Mapping the Service Info
         bookingResponseDto.setServiceName(booking.getServiceOffering().getServiceType().getName());
         bookingResponseDto.setPrice(booking.getServiceOffering().getPrice());
@@ -173,7 +180,10 @@ public class BookingService{
 
  }
 
- public BookingResponseDto completeBookingWithOtp(Long bookingId,String otp){
+ public BookingResponseDto completeBookingWithOtp(Long bookingId,
+                                                  String otp,
+                                                  MultipartFile beforeImage,
+                                                  MultipartFile afterImage) throws IOException {
         Booking booking=bookingRepo.findById(bookingId)
                 .orElseThrow(()-> new RuntimeException("Booking Not Found"));
      String LoggedInProvider =SecurityContextHolder.getContext().getAuthentication().getName();
@@ -194,6 +204,17 @@ public class BookingService{
         if(passwordEncoder.matches(otp,hashedOtp)){
             throw new RuntimeException("Invalid Otp, Please try Again Later");
         }
+
+        if(beforeImage!=null && !beforeImage.isEmpty()){
+            String beforeImageUrl =  fileUploadService.uploadFile(beforeImage);
+            booking.setBeforeImages(beforeImageUrl);
+
+        }
+        if(afterImage!=null && !afterImage.isEmpty()){
+            String afterImageUrl =  fileUploadService.uploadFile(afterImage);
+            booking.setAfterImages(afterImageUrl);
+        }
+
 
         // if everything goes good booking marked completed;
      booking.setBookingStatus(BookingStatus.COMPLETED);

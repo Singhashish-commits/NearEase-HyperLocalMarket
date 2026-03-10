@@ -14,5 +14,6 @@ public class ServiceSearchResponseDto {
     private Double Price;
     private String Description;
     private String providerProfileName;
+    private String imageUrl;
 
 }

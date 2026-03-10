@@ -72,6 +72,7 @@ public class PublicService {
         serviceOfferingResponse.setDescription(offering.getDescription());
         serviceOfferingResponse.setServiceTypename(offering.getServiceType().getName());
         serviceOfferingResponse.setProvider(providerDto);
+        serviceOfferingResponse.setImageUrl(offering.getImageUrl());
 
         return serviceOfferingResponse;
 

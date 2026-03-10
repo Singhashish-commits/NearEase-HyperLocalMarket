@@ -31,6 +31,8 @@ public class Booking {
     @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus;
     private LocalDateTime bookingTime;
+    private String beforeImages;
+    private String afterImages;
 
     @PrePersist
     private void onCreate(){

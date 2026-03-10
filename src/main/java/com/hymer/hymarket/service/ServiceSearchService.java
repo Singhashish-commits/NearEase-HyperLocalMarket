@@ -37,6 +37,7 @@ public class ServiceSearchService {
         serviceSearchResponseDto.setPrice(serviceOffering.getPrice());
         serviceSearchResponseDto.setCategory(serviceOffering.getServiceType().getCategory().getName());
         serviceSearchResponseDto.setProviderProfileName(serviceOffering.getProviderProfile().getUser().getFirstName());
+        serviceSearchResponseDto.setImageUrl(serviceOffering.getImageUrl());
 
         return serviceSearchResponseDto;
     }

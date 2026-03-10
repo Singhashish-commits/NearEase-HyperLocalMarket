@@ -22,4 +22,6 @@ public class BookingResponseDto {
     private double price;
     private UserProfileDto customer;
     private ProviderProfileDto provider;
+    private String beforeImages;
+    private String afterImages;
 }
