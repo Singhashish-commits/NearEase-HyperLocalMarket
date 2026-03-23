@@ -3,7 +3,6 @@ package com.hymer.hymarket.service;
 import com.hymer.hymarket.Repository.*;
 import com.hymer.hymarket.dto.*;
 import com.hymer.hymarket.model.*;
-import jakarta.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,16 +22,18 @@ public class ProviderProfileService {
     private  final ProviderProfileRepository providerRepo;
     private final FileUploadService fileUploadService;
     private final BookingRepo bookingRepo;
+    private final ReviewRepository reviewRepo;
 //    private final Filter filter;
 
     @Autowired
-    public ProviderProfileService(UserRepository userRepository, ProviderProfileRepository providerRepo, ServiceTypeRepo serviceTypeRepo, ServiceOfferingRepo serviceOfferingRepo, FileUploadService fileUploadService, BookingRepo bookingRepo) {
+    public ProviderProfileService(UserRepository userRepository, ProviderProfileRepository providerRepo, ServiceTypeRepo serviceTypeRepo, ServiceOfferingRepo serviceOfferingRepo, FileUploadService fileUploadService, BookingRepo bookingRepo, ReviewRepository reviewRepo) {
         this.userRepository = userRepository;
         this.providerRepo = providerRepo;
         this.serviceTypeRepo = serviceTypeRepo;
         this.serviceOfferingRepo = serviceOfferingRepo;
         this.fileUploadService = fileUploadService;
         this.bookingRepo = bookingRepo;
+        this.reviewRepo = reviewRepo;
 
 
 
@@ -142,4 +143,66 @@ public class ProviderProfileService {
         dto.setBeforeImageUrl(booking.getBeforeImages());
         return dto;
     }
+
+    public ProviderDashBoardDto getProviderDashBoard(){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
+         ProviderProfile provider = providerRepo.findByUser(user).orElseThrow(()-> new RuntimeException("Provider profile not found"));
+         long providerId = provider.getId();
+         long completedJobs = bookingRepo.countByServiceOfferingProviderProfileIdAndBookingStatus(providerId, BookingStatus.COMPLETED);
+         long pendingRequest = bookingRepo.countByServiceOfferingProviderProfileIdAndBookingStatus(providerId, BookingStatus.PENDING);
+         Double earnings = bookingRepo.calculateTotalEarning(providerId, BookingStatus.COMPLETED);
+         Double finalEarning = (earnings!=null)? earnings:0;
+
+        Double AverageRating = providerRepo.getRatingById(providerId);
+
+        // fetching the active Services
+        List<ServiceOffering> offering = serviceOfferingRepo.findByProviderProfileId(providerId);
+        List<ServiceOfferingResponse> activeService = offering.stream().
+                map(this ::mapToServiceOfferingResponse).toList();
+
+        //build the DashBoardDto
+        ProviderDashBoardDto providerDashBoardDto = new ProviderDashBoardDto();
+        providerDashBoardDto.setProviderName(user.getFirstName()+" "+user.getLastName());
+        providerDashBoardDto.setProviderEmail(email);
+        providerDashBoardDto.setImageUrl(user.getProfilePictureImageUrl());
+        providerDashBoardDto.setPhoneNo(user.getPhoneNumber());
+        providerDashBoardDto.setTotalEarning(finalEarning);
+        providerDashBoardDto.setCompletedJobs(completedJobs);
+        providerDashBoardDto.setPendingRequest(pendingRequest);
+        providerDashBoardDto.setAverageRating(AverageRating);
+        providerDashBoardDto.setActiveServices(activeService);
+
+        return providerDashBoardDto;
+
+    }
+
+    private ServiceOfferingResponse mapToServiceOfferingResponse(ServiceOffering serviceOffering) {
+        ServiceOfferingResponse dto = new ServiceOfferingResponse();
+        dto.setId(serviceOffering.getId());
+        dto.setPrice(serviceOffering.getPrice());
+        dto.setDescription(serviceOffering.getDescription());
+        dto.setServiceTypename(serviceOffering.getServiceType().getName());
+        dto.setImageUrl(serviceOffering.getImageUrl());
+        ProviderProfile profile = serviceOffering.getProviderProfile();
+        ProviderProfileDto profileDto = new ProviderProfileDto();
+        profileDto.setId(profile.getId());
+        profileDto.setBio(profile.getBio());
+        profileDto.setSkill(profile.getSkills());
+        profileDto.setExperience(profile.getExperience());
+        profileDto.setAddress(profile.getAddress());
+        profileDto.setVerified(profile.isVerified());
+        User user = profile.getUser();
+        UserProfileDto userProfileDto = new UserProfileDto();
+        userProfileDto.setId(user.getId());
+        userProfileDto.setFirstName(user.getFirstName());
+        userProfileDto.setLastName(user.getLastName());
+        userProfileDto.setEmail(user.getEmail());
+        userProfileDto.setPhone(user.getPhoneNumber());
+        profileDto.setUser(userProfileDto);
+        dto.setProvider(profileDto);
+        return dto;
+    }
+
+
 }

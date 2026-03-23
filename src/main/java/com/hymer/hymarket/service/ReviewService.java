@@ -108,7 +108,6 @@ public class ReviewService {
         if(user.getProviderProfile()==null){
             throw new RuntimeException("You are not Provider ,Apply to be Provider To See Your Reviews");
         }
-        System.out.println("Provider Profile Found The is "+user.getProviderProfile().getId());
 //        return reviewRepository.findByBooking_Provider_Id(user.getProviderProfile().getId());
         Long providerId = user.getProviderProfile().getId();
         List<Review> reviews = reviewRepository.findByBooking_Provider_Id(providerId);

@@ -1,9 +1,6 @@
 package com.hymer.hymarket.controller;
 
-import com.hymer.hymarket.dto.ApiResponse;
-import com.hymer.hymarket.dto.ProviderPortfolioDto;
-import com.hymer.hymarket.dto.ProviderProfileRequest;
-import com.hymer.hymarket.dto.ServiceOfferingRequest;
+import com.hymer.hymarket.dto.*;
 import com.hymer.hymarket.service.ProviderProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -48,9 +45,12 @@ public class ProviderController {
             ) throws Exception {
         return providerProfileService.addService(serviceRequest,file);
 
-
-
     }
 
+    @GetMapping("my/DashBoard")
+    public ResponseEntity<ProviderDashBoardDto>  getDashBoard(){
+        ProviderDashBoardDto providerDashBoardDto = providerProfileService.getProviderDashBoard();
+        return ResponseEntity.ok(providerDashBoardDto);
+    }
 
 }
