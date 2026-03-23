@@ -16,5 +16,8 @@ public class ServiceSearchRequestDto {
 
     private String sortBy;
     private String sortDirn;
+    private Double userLat; // latitude fo the user
+    private Double userLng; // Longitude of the user
+    private Double radiusKm; // radius distance in km
 
 }

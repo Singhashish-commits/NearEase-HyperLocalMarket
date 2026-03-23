@@ -21,6 +21,10 @@ public class ProviderProfile {
 
     private String address;
 
+    private String city;
+    private String state;
+    private Long pinCode;
+
     private boolean isVerified = false;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -36,6 +40,10 @@ public class ProviderProfile {
     private Double averageRating= 0.0;
     @Column(nullable = false)
     private Integer reviewCount =0;
+
+    private String longitude;
+    private String latitude;
+
 
 
 }

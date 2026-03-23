@@ -1,6 +1,7 @@
 package com.hymer.hymarket.Specification;
 
 import com.hymer.hymarket.dto.ServiceSearchRequestDto;
+import com.hymer.hymarket.model.ProviderProfile;
 import com.hymer.hymarket.model.ServiceCategory;
 import com.hymer.hymarket.model.ServiceOffering;
 import com.hymer.hymarket.model.ServiceType;
@@ -40,7 +41,29 @@ public class ServiceSpecification {
 
                 predicates.add(criteriaBuilder.or(descMatch, typeNameMatch));
             }
+            //Geo-Spatial Search
+            if(serviceSearchRequestDto.getUserLat()!=null && serviceSearchRequestDto.getUserLng()!=null && serviceSearchRequestDto.getRadiusKm()!=null){
+                final double earthRadiusKm = 6371.01;
+                final double degree_Distance = 111.0;
+                // calculate the min and the max Latitude
+                double latDelta = serviceSearchRequestDto.getRadiusKm()/degree_Distance;
+                double minLat = serviceSearchRequestDto.getUserLat()-latDelta;
+                double maxLat = serviceSearchRequestDto.getUserLat()+latDelta;
+
+                // Calculating the user max and min Longitude
+                double lanDelta = serviceSearchRequestDto
+                        .getRadiusKm()/(degree_Distance * Math.cos(Math.toRadians(serviceSearchRequestDto. getUserLat())));
+                double minLng = serviceSearchRequestDto.getUserLng()-lanDelta;
+                double maxLng = serviceSearchRequestDto.getUserLng()+lanDelta;
+
+                // Join Service Offering -> providerProfile to access the data
+                Join<ServiceOffering, ProviderProfile> providerJoin = root.join("providerProfile");
+                predicates.add(criteriaBuilder.between(providerJoin.get("latitude"), minLat, maxLat));
+                predicates.add(criteriaBuilder.between(providerJoin.get("longitude"), minLng, maxLng));
+            }
+
+
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
-    };
+    }
 }

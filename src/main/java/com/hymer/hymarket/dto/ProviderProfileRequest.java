@@ -13,5 +13,9 @@ public class ProviderProfileRequest {
     private String skills;
     private String experience;
     private String address;
-
+    private String city;
+    private String state;
+    private Long pinCode;
+    private  String latitude;
+    private String  longitude;
 }

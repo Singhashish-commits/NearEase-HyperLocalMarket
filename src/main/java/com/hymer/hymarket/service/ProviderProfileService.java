@@ -57,6 +57,11 @@ public class ProviderProfileService {
         providerProfile.setExperience(request.getExperience());
         providerProfile.setVerified(false);
         providerProfile.setAddress(request.getAddress());
+        providerProfile.setCity(request.getCity());
+        providerProfile.setState(request.getState());
+        providerProfile.setPinCode(request.getPinCode());
+        providerProfile.setLatitude(request.getLatitude());
+        providerProfile.setLongitude(request.getLongitude());
         providerRepo.save(providerProfile);
                 return ResponseEntity.ok(new ApiResponse(true, "Application Submitted for verification"));
 

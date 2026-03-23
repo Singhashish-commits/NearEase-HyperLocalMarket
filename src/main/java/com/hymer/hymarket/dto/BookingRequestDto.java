@@ -14,4 +14,9 @@ public class BookingRequestDto {
     private LocalDateTime scheduleTime;
     private String workLocation;
     private String customerRequest;
+    private String longitude;
+    private String latitude;
+    private String city;
+    private String state;
+    private Long pinCode;
 }

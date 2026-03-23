@@ -65,7 +65,6 @@ public class BookingService{
         booking.setScheduleTime(bookingRequestDto.getScheduleTime());
         booking.setWorkLocation(bookingRequestDto.getWorkLocation());
         Booking SavedBooking = bookingRepo.save(booking);
-
         return mapBookingDto(SavedBooking);
     }
 

@@ -26,7 +26,7 @@ public class Booking {
     @JoinColumn(name="provider-id") // who is providing
     private ProviderProfile provider;
     private LocalDateTime scheduleTime;// when they want service
-    private String workLocation; // where
+    private String workLocation; // where the work need to be done
     private String customerRequest;
     @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus;
