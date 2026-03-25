@@ -28,7 +28,7 @@ public class AdminService {
     }
 
 @Transactional
-    public ResponseEntity<?> approveProviderRequest(Long id) {
+    public ResponseEntity<ApiResponse> approveProviderRequest(Long id) {
         //find user first
         User user = userRepo.findById(id).orElseThrow(()->new EntityNotFoundException("User not found"));
         ProviderProfile profile = user.getProviderProfile();

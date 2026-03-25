@@ -1,4 +1,5 @@
 package com.hymer.hymarket.service;
+import com.hymer.hymarket.Mapper.ReviewResponseDtoMapper;
 import com.hymer.hymarket.Repository.BookingRepo;
 import com.hymer.hymarket.Repository.ProviderProfileRepository;
 import com.hymer.hymarket.Repository.ReviewRepository;
@@ -82,21 +83,7 @@ public class ReviewService {
    //    So there is now Security Check
     public List<ReviewResponseDto> getProviderReviews(Long ProviderId){
         List<Review> reviews = reviewRepository.findByBooking_Provider_Id(ProviderId);
-        return reviews.stream().map(review -> {
-            ReviewResponseDto dto = new ReviewResponseDto();
-            dto.setId(review.getId());
-            dto.setRating(review.getRating());
-            dto.setComment(review.getComment());
-            dto.setCreatedAt(review.getCreatedAt());
-
-            // Get Customer Name safely
-            if (review.getBooking().getCustomer() != null) {
-                dto.setCustomerName(review.getBooking().getCustomer().getFirstName());
-            } else {
-                dto.setCustomerName("Anonymous");
-            }
-            return dto;
-        }).collect(Collectors.toList());
+        return reviews.stream().map(ReviewResponseDtoMapper::mapDto).collect(Collectors.toList());
 
     }
 

@@ -1,5 +1,7 @@
 package com.hymer.hymarket.service;
 
+import com.hymer.hymarket.Mapper.ProviderPortfolioDtoMapper;
+import com.hymer.hymarket.Mapper.ServiceOfferingMapper;
 import com.hymer.hymarket.Repository.*;
 import com.hymer.hymarket.dto.*;
 import com.hymer.hymarket.model.*;
@@ -23,7 +25,6 @@ public class ProviderProfileService {
     private final FileUploadService fileUploadService;
     private final BookingRepo bookingRepo;
     private final ReviewRepository reviewRepo;
-//    private final Filter filter;
 
     @Autowired
     public ProviderProfileService(UserRepository userRepository, ProviderProfileRepository providerRepo, ServiceTypeRepo serviceTypeRepo, ServiceOfferingRepo serviceOfferingRepo, FileUploadService fileUploadService, BookingRepo bookingRepo, ReviewRepository reviewRepo) {
@@ -108,7 +109,7 @@ public class ProviderProfileService {
         return completedWork.stream()
                 // Only include bookings that actually have an 'After' image to show off
                 .filter(booking -> booking.getAfterImages()!=null)
-                .map(this::mapToPortfolioDto)
+                .map(ProviderPortfolioDtoMapper::mapDto)
                 .collect(Collectors.toList());
     }
     public List<ProviderPortfolioDto>getMyPortfolio(){
@@ -133,17 +134,6 @@ public class ProviderProfileService {
         bookingRepo.save(booking);
     }
 
-
-    private ProviderPortfolioDto mapToPortfolioDto(Booking booking){
-        ProviderPortfolioDto dto = new ProviderPortfolioDto();
-        dto.setBookingId(booking.getId());
-        dto.setServiceName(booking.getServiceOffering().getServiceType().getName());
-        dto.setCategory(booking.getServiceOffering().getServiceType().getCategory().getName());
-        dto.setAfterImageUrl(booking.getAfterImages());
-        dto.setBeforeImageUrl(booking.getBeforeImages());
-        return dto;
-    }
-
     public ProviderDashBoardDto getProviderDashBoard(){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
@@ -159,7 +149,7 @@ public class ProviderProfileService {
         // fetching the active Services
         List<ServiceOffering> offering = serviceOfferingRepo.findByProviderProfileId(providerId);
         List<ServiceOfferingResponse> activeService = offering.stream().
-                map(this ::mapToServiceOfferingResponse).toList();
+        map(ServiceOfferingMapper::mapDto).toList();
 
         //build the DashBoardDto
         ProviderDashBoardDto providerDashBoardDto = new ProviderDashBoardDto();
@@ -177,32 +167,6 @@ public class ProviderProfileService {
 
     }
 
-    private ServiceOfferingResponse mapToServiceOfferingResponse(ServiceOffering serviceOffering) {
-        ServiceOfferingResponse dto = new ServiceOfferingResponse();
-        dto.setId(serviceOffering.getId());
-        dto.setPrice(serviceOffering.getPrice());
-        dto.setDescription(serviceOffering.getDescription());
-        dto.setServiceTypename(serviceOffering.getServiceType().getName());
-        dto.setImageUrl(serviceOffering.getImageUrl());
-        ProviderProfile profile = serviceOffering.getProviderProfile();
-        ProviderProfileDto profileDto = new ProviderProfileDto();
-        profileDto.setId(profile.getId());
-        profileDto.setBio(profile.getBio());
-        profileDto.setSkill(profile.getSkills());
-        profileDto.setExperience(profile.getExperience());
-        profileDto.setAddress(profile.getAddress());
-        profileDto.setVerified(profile.isVerified());
-        User user = profile.getUser();
-        UserProfileDto userProfileDto = new UserProfileDto();
-        userProfileDto.setId(user.getId());
-        userProfileDto.setFirstName(user.getFirstName());
-        userProfileDto.setLastName(user.getLastName());
-        userProfileDto.setEmail(user.getEmail());
-        userProfileDto.setPhone(user.getPhoneNumber());
-        profileDto.setUser(userProfileDto);
-        dto.setProvider(profileDto);
-        return dto;
-    }
 
 
 }

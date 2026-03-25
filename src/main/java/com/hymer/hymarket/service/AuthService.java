@@ -1,10 +1,7 @@
 package com.hymer.hymarket.service;
 import com.hymer.hymarket.Repository.RoleRepository;
 import com.hymer.hymarket.Repository.UserRepository;
-import com.hymer.hymarket.dto.JwtResponse;
-import com.hymer.hymarket.dto.LoginRequest;
-import com.hymer.hymarket.dto.SignUpRequest;
-import com.hymer.hymarket.dto.SignUpResponseDto;
+import com.hymer.hymarket.dto.*;
 import com.hymer.hymarket.model.Roles;
 import com.hymer.hymarket.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +81,7 @@ public class AuthService {
     }
 
     // save user taking signup request and after verifying Otp;
-    public SignUpResponseDto saveUser(SignUpRequest signUpRequest ) {
+    public ApiResponse saveUser(SignUpRequest signUpRequest ) {
 
            String varificationStatus = redisService.getValue("is_verified:"+signUpRequest.getEmail());
            if(varificationStatus==null || !varificationStatus.equals("true")){
@@ -108,7 +105,7 @@ public class AuthService {
         Roles userRole = roleRepository.findByName("ROLE_USER").orElseThrow(() -> new RuntimeException("Role Not Found"));
         user.setRoles(Set.of(userRole));
         userRepo.save(user);
-        return new SignUpResponseDto("Registration Successful!","SUCCESS");
+        return new ApiResponse(true,"Registration Successful!");
 
     }
 // Login for the already exist user

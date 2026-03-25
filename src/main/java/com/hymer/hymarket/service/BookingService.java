@@ -1,13 +1,14 @@
 package com.hymer.hymarket.service;
 
+import com.hymer.hymarket.Mapper.BookingResponseDtoMapper;
 import com.hymer.hymarket.Repository.BookingRepo;
 import com.hymer.hymarket.Repository.ServiceOfferingRepo;
 import com.hymer.hymarket.Repository.UserRepository;
 import com.hymer.hymarket.dto.BookingRequestDto;
 import com.hymer.hymarket.dto.BookingResponseDto;
-import com.hymer.hymarket.dto.ProviderProfileDto;
-import com.hymer.hymarket.dto.UserProfileDto;
 import com.hymer.hymarket.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class BookingService{
+    private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
     private final  BookingRepo bookingRepo;
     private final  ServiceOfferingRepo serviceOfferingRepo;
     private  final UserRepository userRepository;
@@ -64,67 +66,18 @@ public class BookingService{
         booking.setCustomerRequest(bookingRequestDto.getCustomerRequest());
         booking.setScheduleTime(bookingRequestDto.getScheduleTime());
         booking.setWorkLocation(bookingRequestDto.getWorkLocation());
-        Booking SavedBooking = bookingRepo.save(booking);
-        return mapBookingDto(SavedBooking);
-    }
+        Booking savedBooking = bookingRepo.save(booking);
+        if (savedBooking.getCustomer() == null ||
+                savedBooking.getServiceOffering() == null ||
+                savedBooking.getProvider() == null) {
 
-    private BookingResponseDto mapBookingDto(Booking booking) {
-        BookingResponseDto bookingResponseDto = new BookingResponseDto();
-        bookingResponseDto.setId(booking.getId());
-        bookingResponseDto.setBookingStatus(booking.getBookingStatus());
-        bookingResponseDto.setBookingTime(booking.getBookingTime());
-        bookingResponseDto.setScheduledTime(booking.getScheduleTime());
-        bookingResponseDto.setWorkLocation(booking.getWorkLocation());
-        bookingResponseDto.setCostumerRequest(booking.getCustomerRequest());
-        bookingResponseDto.setBeforeImages(booking.getBeforeImages());
-        bookingResponseDto.setAfterImages(booking.getAfterImages());
-        // Mapping the Service Info
-        bookingResponseDto.setServiceName(booking.getServiceOffering().getServiceType().getName());
-        bookingResponseDto.setPrice(booking.getServiceOffering().getPrice());
-
-        // Mapping the Customer
-        User customer = booking.getCustomer();
-      if(customer != null){
-          UserProfileDto userProfile = new UserProfileDto();
-          userProfile.setId(customer.getId());
-          userProfile.setFirstName(customer.getFirstName());
-          userProfile.setLastName(customer.getLastName());
-          userProfile.setEmail(customer.getEmail());
-          userProfile.setPhone(customer.getPhoneNumber());
-          //Mapping the user who booked to teh dto of the booking Response
-          bookingResponseDto.setCustomer(userProfile);
-      }
-      else{
-          System.out.println(" booking id "+ booking.getId()+" has no customer ");
-      }
-
-        // Map the provider Profile
-        ProviderProfileDto providerProfileDto = getProviderProfileDto(booking);
-
-        bookingResponseDto.setProvider(providerProfileDto);
-
-        return bookingResponseDto;
-    }
-
-    private static ProviderProfileDto getProviderProfileDto(Booking booking) {
-        ProviderProfile providerProfile  = booking.getProvider();
-        ProviderProfileDto providerProfileDto = new ProviderProfileDto();
-        providerProfileDto.setId(providerProfile.getId());
-        providerProfileDto.setBio(providerProfile.getBio());
-        providerProfileDto.setExperience(providerProfile.getExperience());
-        providerProfileDto.setSkill(providerProfile.getSkills());
-        providerProfileDto.setAddress(providerProfile.getAddress());
-        providerProfileDto.setVerified(providerProfile.isVerified());
-        // user Account of the Provider who is providing the Service
-        User providerUser = booking.getProvider().getUser();
-        UserProfileDto providerUserProfile = new UserProfileDto();
-        providerUserProfile.setId(providerUser.getId());
-        providerUserProfile.setFirstName(providerUser.getFirstName());
-        providerUserProfile.setLastName(providerUser.getLastName());
-        providerUserProfile.setPhone(providerUser.getPhoneNumber());
-        providerUserProfile.setEmail(providerUser.getEmail());
-        providerProfileDto.setUser(providerUserProfile);
-        return providerProfileDto;
+            logger.warn("Incomplete booking detected. Id: {}, customer: {}, serviceOffering: {}, provider: {}",
+                    savedBooking.getId(),
+                    savedBooking.getCustomer() != null,
+                    savedBooking.getServiceOffering() != null,
+                    savedBooking.getProvider() != null);
+        }
+        return BookingResponseDtoMapper.mapDto(savedBooking);
     }
 
     public List<BookingResponseDto> customerBookings(){
@@ -134,7 +87,7 @@ public class BookingService{
         List<Booking>bookings = bookingRepo.findByCustomerId(user.getId());
 
             return bookings.stream()
-                    .map(this ::mapBookingDto)
+                    .map(BookingResponseDtoMapper::mapDto)
                     .collect(Collectors.toList());
     }
 
@@ -145,7 +98,7 @@ public class BookingService{
         if(user.getProviderProfile()==null) throw new RuntimeException("Provider Profile Not Found");
         List<Booking> bookings = bookingRepo.findByProviderId(user.getProviderProfile().getId());
         return bookings.stream()
-                    .map(this ::mapBookingDto)
+                    .map(BookingResponseDtoMapper::mapDto)
                     .collect(Collectors.toList());
 
     }
@@ -161,7 +114,8 @@ public class BookingService{
        }
         booking.setBookingStatus(newStatus);
         Booking updatedBooking = bookingRepo.save(booking);
-        return mapBookingDto(updatedBooking);
+
+        return BookingResponseDtoMapper.mapDto(updatedBooking);
 
     }
  private void generateAndSendOtp(Booking booking){
@@ -218,7 +172,7 @@ public class BookingService{
         // if everything goes good booking marked completed;
      booking.setBookingStatus(BookingStatus.COMPLETED);
         redisService.deleteValue(redisKey);
-        return mapBookingDto(bookingRepo.save(booking));
+     return BookingResponseDtoMapper.mapDto(booking);
  }
 
  public void resendOtp(Long bookingId){
@@ -249,11 +203,6 @@ public class BookingService{
         System.out.println("Otp");
 
  }
-
-
-
-
-
 
 
 }
