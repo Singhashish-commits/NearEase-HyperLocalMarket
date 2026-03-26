@@ -99,7 +99,7 @@ public class AuthService {
         user.setUsername(signUpRequest.getUsername());
         user.setFirstName(signUpRequest.getFirstName());
         user.setLastName(signUpRequest.getLastName());
-        user.setPhoneNumber(signUpRequest.getPhoneNUmber());
+        user.setPhoneNumber(signUpRequest.getPhoneNumber());
         user.setVerified(true);
         user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         Roles userRole = roleRepository.findByName("ROLE_USER").orElseThrow(() -> new RuntimeException("Role Not Found"));
