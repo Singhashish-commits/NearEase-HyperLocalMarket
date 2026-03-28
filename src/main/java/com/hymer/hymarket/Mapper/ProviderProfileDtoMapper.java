@@ -12,9 +12,11 @@ public class ProviderProfileDtoMapper {
         providerProfileDto.setBio(providerProfile.getBio());
         providerProfileDto.setAddress(providerProfile.getAddress());
         providerProfileDto.setExperience(providerProfile.getExperience());
-        providerProfileDto.setUser(UserProfileDtoMapper.matDto(providerProfile.getUser()));
+        providerProfileDto.setUser(UserProfileDtoMapper.mapDto(providerProfile.getUser()));
         providerProfileDto.setVerified(providerProfile.isVerified());
         return providerProfileDto;
 
     }
+
+
 }

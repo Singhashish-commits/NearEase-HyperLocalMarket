@@ -102,7 +102,7 @@ public class BookingService{
                     .collect(Collectors.toList());
 
     }
-
+//    THe method for the Provider so that he can mark the booking to make it confirm-accept
     public BookingResponseDto updateBookingStatus(Long bookingId, BookingStatus newStatus){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User currentUser = userRepository.findByEmail(email)
@@ -196,7 +196,7 @@ public class BookingService{
          throw new RuntimeException("Please wait 1 minute before requesting another OTP.");
      }
 
-      // Set a 1-minute cooldown flag
+
      redisService.saveValue(rateLimitKey, "WAIT", 1);
 
         generateAndSendOtp(booking);

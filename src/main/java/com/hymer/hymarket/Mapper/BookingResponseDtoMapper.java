@@ -36,7 +36,7 @@ public class BookingResponseDtoMapper {
             bookingResponseDto.setPrice(offering.getPrice());
         }
 
-        bookingResponseDto.setCustomer(UserProfileDtoMapper.matDto(booking.getCustomer()));
+        bookingResponseDto.setCustomer(UserProfileDtoMapper.mapDto(booking.getCustomer()));
 
         bookingResponseDto.setProvider(ProviderProfileDtoMapper.mapDto(booking.getProvider()));
         return bookingResponseDto;
