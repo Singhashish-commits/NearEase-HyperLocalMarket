@@ -5,14 +5,18 @@ import com.hymer.hymarket.Repository.PaymentRepository;
 import com.hymer.hymarket.dto.PaymentResponseDto;
 import com.hymer.hymarket.model.Booking;
 import com.hymer.hymarket.model.BookingStatus;
+import com.hymer.hymarket.model.PaymentStatus;
 import com.hymer.hymarket.model.PaymentTransection;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
+import com.razorpay.RazorpayException;
+import jakarta.annotation.PostConstruct;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PaymentService {
@@ -24,6 +28,7 @@ public class PaymentService {
         this.bookingRepo = bookingRepo;
         this.paymentRepository = paymentRepository;
     }
+    private RazorpayClient razorpayClient;
 
     @Value("${razorpay.key.id}")
     private String razorPayKey;
@@ -31,6 +36,12 @@ public class PaymentService {
     @Value("${razorpay.key.secret}")
     private String razorPaySecret;
 
+    @PostConstruct
+    public void init() throws RazorpayException {
+        this.razorpayClient = new RazorpayClient(razorPayKey, razorPaySecret);
+    }
+
+    @Transactional
     public PaymentResponseDto createOrder(Long bookingId) throws Exception{
         Booking booking = bookingRepo.findById(bookingId).orElseThrow(()->new RuntimeException("Booking not found"));
 
@@ -42,37 +53,88 @@ public class PaymentService {
         if(booking.getBookingStatus()!= BookingStatus.CONFIRMED){
             throw new RuntimeException("Booking is Not confirmed yet Payment can be done Only After order gets Confirmed");
         }
-        RazorpayClient razorpayClient = new RazorpayClient(razorPayKey,razorPaySecret);
+//        RazorpayClient razorpayClient = new RazorpayClient(razorPayKey,razorPaySecret);
         double actualPrice = booking.getServiceOffering().getPrice();
-        int FinalPrice = (int)Math.round(actualPrice * 100); // RazorPay accepts amount in small Amount
+        int finalPrice = (int)Math.round(actualPrice * 100); // RazorPay accepts amount in small Amount
         JSONObject paymentRequest = new JSONObject();
-        paymentRequest.put("amount",FinalPrice);
+        paymentRequest.put("amount",finalPrice);
         paymentRequest.put("currency","INR");
         paymentRequest.put("receipt", "txn_booking_" + bookingId);
 
         Order razorPayOrder = razorpayClient.orders.create(paymentRequest);
         String orderId = razorPayOrder.get("id");
-        PaymentTransection transection = new PaymentTransection();
-        transection.setBooking(booking);
-        transection.setRazorPayOrderId(orderId);
-        transection.setAmount(FinalPrice);
-        transection.setCurrency("INR");
-        transection.setStatus("CREATED");
-        paymentRepository.save(transection);
+        PaymentTransection transaction = new PaymentTransection();
+        transaction.setBooking(booking);
+        transaction.setRazorPayOrderId(orderId);
+        transaction.setAmount(finalPrice);
+        transaction.setCurrency("INR");
+        transaction.setStatus("CREATED");
+        transaction.setPaymentStatus(PaymentStatus.UNPAID);
+        paymentRepository.save(transaction);
 
 
         booking.setTransectionId(orderId);
         bookingRepo.save(booking);
         PaymentResponseDto response = new PaymentResponseDto();
         response.setRazorpayOrderId(orderId);
-        response.setAmountInPaise(FinalPrice);
+        response.setAmountInPaise(finalPrice);
         response.setCurrency("INR");
-        response.setCustomerEmail(booking.getCustomer().getFirstName()+" "+booking.getCustomer().getLastName());
+        response.setCustomerName(booking.getCustomer().getFirstName()+" "+booking.getCustomer().getLastName());
         response.setCustomerEmail(booking.getCustomer().getEmail());
         response.setCustomerPhone(booking.getCustomer().getPhoneNumber());
 
         return  response;
 
+    }
+
+    @Transactional
+    public void processRefund(Long bookingId) throws Exception{
+       Booking booking= bookingRepo.findById(bookingId).orElseThrow(()->new RuntimeException("Booking not found"));
+
+        if(booking.getPaymentStatus()!= PaymentStatus.PAID_TO_PLATFORM){
+            throw new RuntimeException(
+                    "Cannot process refund: payment status is " + booking.getPaymentStatus()
+                            + ". Expected PAID_TO_PLATFORM.");
+        }
+        double actualPrice = booking.getServiceOffering().getPrice();
+        double platformFee = booking.getCancellationFee();
+        double refundAmount = actualPrice - platformFee;
+        PaymentTransection refundTxn = new PaymentTransection();
+        refundTxn.setBooking(booking);
+        refundTxn.setAmount((int)(refundAmount*100));
+        refundTxn.setCurrency("INR");
+        if(platformFee==0){
+            refundTxn.setStatus("Full Amount will be Processed");
+        }
+        else{
+            refundTxn.setStatus("platform fee will be deducted from the Total Amount");
+        }
+        paymentRepository.save(refundTxn);
+        booking.setPaymentStatus(PaymentStatus.REFUNDED);
+        bookingRepo.save(booking);
+
+
+    }
+
+    @Transactional
+    public void providerPayout(Long bookingId) throws Exception{
+        Booking booking = bookingRepo.findById(bookingId).orElseThrow(()->new RuntimeException("Booking not found"));
+        if(booking.getPaymentStatus()!= PaymentStatus.PAID_TO_PLATFORM){
+            throw new RuntimeException("can't process Payout : funds are not in escrow");
+
+        }
+        double actualPrice = booking.getServiceOffering().getPrice();
+        double platformFee = booking.getCancellationFee();
+        double payableAmount = actualPrice - platformFee;
+        PaymentTransection paymentTxn = new PaymentTransection();
+        paymentTxn.setBooking(booking);
+        paymentTxn.setAmount((int)payableAmount*100);
+        paymentTxn.setCurrency("INR");
+        paymentTxn.setPaymentStatus(PaymentStatus.TRANSFER_TO_PROVIDER);
+
+        paymentRepository.save(paymentTxn);
+        booking.setPaymentStatus(PaymentStatus.TRANSFER_TO_PROVIDER);
+        bookingRepo.save(booking);
     }
 
 

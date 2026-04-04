@@ -28,6 +28,7 @@ public class PaymentTransection {
     private String currency="INR";
     private String paymentMethod;
     private String status;
+    private PaymentStatus paymentStatus;
     @CreationTimestamp
     @Column( updatable = false)
     private LocalDateTime createdAt;

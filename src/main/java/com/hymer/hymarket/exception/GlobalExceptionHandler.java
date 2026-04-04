@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.time.LocalDateTime;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -56,12 +58,4 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleMailException(MailException e){
        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable TO send email, please try again later");
     }
-
-
-
-
-
-
-
-
 }
