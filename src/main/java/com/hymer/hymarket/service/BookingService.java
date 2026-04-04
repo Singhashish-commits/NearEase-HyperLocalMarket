@@ -4,6 +4,7 @@ import com.hymer.hymarket.Mapper.BookingResponseDtoMapper;
 import com.hymer.hymarket.Repository.BookingRepo;
 import com.hymer.hymarket.Repository.ServiceOfferingRepo;
 import com.hymer.hymarket.Repository.UserRepository;
+import com.hymer.hymarket.dto.ApiResponse;
 import com.hymer.hymarket.dto.BookingRequestDto;
 import com.hymer.hymarket.dto.BookingResponseDto;
 import com.hymer.hymarket.model.*;
@@ -17,6 +18,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -144,17 +147,17 @@ public class BookingService{
      if(!currProvider.equals(LoggedInProvider)){
          throw new RuntimeException("Unauthorized: Only the assigned provider can complete this booking.\"");
      }
-        if(booking.getBookingStatus().equals(BookingStatus.CONFIRMED)){
+        if(!booking.getBookingStatus().equals(BookingStatus.CONFIRMED)){
             throw new RuntimeException("Booking is not Ready for Completion");
         }
 
 
-        String redisKey = "Booking_otp:"+booking.getId();
+        String redisKey = "booking_otp:"+booking.getId();
         String hashedOtp = redisService.getValue(redisKey);
         if(hashedOtp==null){
             throw new RuntimeException("Otp Expired ! please ask customer to resend  the Otp");
         }
-        if(passwordEncoder.matches(otp,hashedOtp)){
+        if(!passwordEncoder.matches(otp,hashedOtp)){
             throw new RuntimeException("Invalid Otp, Please try Again Later");
         }
 
@@ -174,6 +177,66 @@ public class BookingService{
         redisService.deleteValue(redisKey);
      return BookingResponseDtoMapper.mapDto(booking);
  }
+ // this is for the customer
+ public ApiResponse requestCancellation(Long bookingId){
+        String email =  SecurityContextHolder.getContext().getAuthentication().getName();
+        Booking booking = bookingRepo.getById(bookingId);
+        if(!booking.getCustomer().getEmail().equals(email)){
+            throw new RuntimeException("Unauthorized: Only the Authorized Customer  can cancel this booking.");
+        }
+        if(booking.getBookingStatus().equals(BookingStatus.CONFIRMED) ||
+                booking.getBookingStatus().equals(BookingStatus.CANCELLED)){
+            throw new RuntimeException("Can't cancel the Booking which is already "+booking.getBookingStatus());
+        }
+        double estimateFee = calculateCancellationFee(booking);
+        booking.setCancellationFee(estimateFee);
+        bookingRepo.save(booking);
+        generateAndSendOtp(booking);
+        return new ApiResponse(true,"OTP  fro the cancellation has been sent to the Registered Email");
+ }
+
+ public BookingResponseDto cancelBookingWithOtp(Long bookingId,String otp){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Booking booking=bookingRepo.findById(bookingId).orElseThrow(()-> new RuntimeException("Booking Not Found"));
+        if(!booking.getCustomer().getEmail().equals(email)){
+            throw new RuntimeException("Unauthorized: Only the Authorized Customer  can cancel this booking.");
+        }
+        String redisKey = "booking_otp:"+booking.getId();
+        String hashedOtp = redisService.getValue(redisKey);
+        if(hashedOtp==null){
+            throw new RuntimeException("Otp Expired! please ask customer to resend the Otp");
+        }
+        if(!passwordEncoder.matches(otp,hashedOtp)){
+            throw new RuntimeException("Invalid Otp, Please try Again Later");
+        }
+        booking.setBookingStatus(BookingStatus.CANCELLED);
+        bookingRepo.save(booking);
+        System.out.println("the Booking that got cancled is the booking with id "+booking.getId());
+        redisService.deleteValue(redisKey);
+        return BookingResponseDtoMapper.mapDto(booking);
+
+
+ }
+ private double calculateCancellationFee(Booking booking){
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime scheduledTime = booking.getScheduleTime();
+        long minutesRemain = Duration.between(now,scheduledTime).toMinutes();
+        if(minutesRemain<0){
+            throw new RuntimeException("Can't cancel the Booking which is in Past ");
+        }
+
+        if(minutesRemain<120){
+            double originalPrice = booking.getServiceOffering().getPrice();
+            return originalPrice*0.20;
+
+        }
+//          no Cancellation before two hours;
+        return 0.0;
+ }
+
+
+
+
 
  public void resendOtp(Long bookingId){
         Booking booking = bookingRepo.findById(bookingId)
@@ -200,7 +263,7 @@ public class BookingService{
      redisService.saveValue(rateLimitKey, "WAIT", 1);
 
         generateAndSendOtp(booking);
-        System.out.println("Otp");
+//        System.out.println("Otp");
 
  }
 

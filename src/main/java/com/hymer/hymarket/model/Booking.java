@@ -34,7 +34,7 @@ public class Booking {
     private String beforeImages;
     private String afterImages;
     private String TransectionId;
-
+    private Double cancellationFee=0.0;
     @PrePersist
     private void onCreate(){
         this.bookingTime = LocalDateTime.now();

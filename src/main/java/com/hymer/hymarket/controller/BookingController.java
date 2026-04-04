@@ -1,5 +1,6 @@
 package com.hymer.hymarket.controller;
 
+import com.hymer.hymarket.dto.ApiResponse;
 import com.hymer.hymarket.dto.BookingRequestDto;
 import com.hymer.hymarket.dto.BookingResponseDto;
 import com.hymer.hymarket.model.BookingStatus;
@@ -61,11 +62,25 @@ public class BookingController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{id}/resend-otp")
-    public ResponseEntity<?> resendOtp(@PathVariable Long id){
+    @PostMapping("/{id}/send-otp")
+    public ResponseEntity<ApiResponse> resendOtp(@PathVariable Long id){
         bookingService.resendOtp(id);
-        return ResponseEntity.ok(Map.of("message", "O New Otp Sent to the Customer email"));
+        return ResponseEntity.ok(new ApiResponse(true,"OTP has been sent to the Registered Email"));
     }
+
+    @PostMapping("/{bookingId}/cancel/request")
+    public ResponseEntity<ApiResponse> requestCancellation(@PathVariable Long bookingId){
+        bookingService.requestCancellation(bookingId);
+        return ResponseEntity.ok(new ApiResponse(true,"Otp for Cancellation of Booking with id : " + bookingId+" has been sent to the Registered Email"));
+
+    }
+
+    @PostMapping("{bookingId}/cancel/confirm")
+    public ResponseEntity<BookingResponseDto> confirmCancellation(@PathVariable Long bookingId, @RequestParam String otp){
+      return ResponseEntity.ok( bookingService.cancelBookingWithOtp(bookingId,otp)) ;
+
+    }
+
 
 
 
