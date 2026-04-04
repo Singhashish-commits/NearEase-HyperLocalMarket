@@ -1,0 +1,5 @@
+Welcome to the HyMarket Service Platform. Here are our core policies:
+1. Cancellation Policy: Customers can cancel a booking up to 2 hours before the scheduled time window for a full refund. Cancellations within 2 hours incur a 20% penalty fee.
+2. Provider Arrival: Providers have a flexible time window. They must contact the customer via the app once the booking is confirmed to finalize the exact arrival time.
+3. Trust and Safety: All providers are required to submit identity verification before their profile is marked as 'Approved' by an admin.
+4. Payment Rules: Customers pay the platform directly. Providers are paid only after the job is marked 'Completed' and the customer provides the 6-digit OTP.
