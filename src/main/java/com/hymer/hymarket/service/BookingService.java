@@ -263,7 +263,6 @@ public class BookingService{
      redisService.saveValue(rateLimitKey, "WAIT", 1);
 
         generateAndSendOtp(booking);
-//        System.out.println("Otp");
 
  }
 
