@@ -17,6 +17,11 @@ import java.util.List;
 public class publicController {
     private PublicService publicService;
     private ProviderProfileService providerProfileService;
+    @Autowired
+    public publicController(PublicService publicService, ProviderProfileService providerProfileService) {
+        this.publicService = publicService;
+        this.providerProfileService = providerProfileService;
+    }
 
     @Autowired
     public void setPublicService(PublicService publicService) {
@@ -43,8 +48,5 @@ public class publicController {
     }
 
 
-    @Autowired
-    public void setProviderProfileService(ProviderProfileService providerProfileService) {
-        this.providerProfileService = providerProfileService;
-    }
+
 }

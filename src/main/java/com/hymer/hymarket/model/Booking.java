@@ -33,6 +33,7 @@ public class Booking {
     private LocalDateTime bookingTime;
     private String beforeImages;
     private String afterImages;
+    private String TransectionId;
 
     @PrePersist
     private void onCreate(){
