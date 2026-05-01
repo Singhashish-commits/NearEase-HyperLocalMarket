@@ -78,7 +78,7 @@ public class UserService {
     public void updateEmailRequest(OtpRequestDto otpRequestDto) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
-        if(userRepository.existsByEmail(otpRequestDto.getEmail())) {
+        if(user.getEmail().equals(otpRequestDto.getEmail())) {
                     throw new RuntimeException("Email already exists by other user ");
         }
         String plainOtp = String.valueOf(100000 + secureRandom.nextInt(900000));
