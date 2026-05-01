@@ -8,6 +8,7 @@ RUN mvn dependency:go-offline -B
 
 # Copy the rest of the source code and build the JAR
 COPY src ./src
+RUN cp src/main/resources/application.properties.example src/main/resources/application.properties
 RUN mvn clean package -DskipTests
 
 # Stage 2: Create the runtime image
