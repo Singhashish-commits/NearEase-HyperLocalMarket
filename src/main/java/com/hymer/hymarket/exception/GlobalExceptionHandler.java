@@ -56,6 +56,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MailException.class)
     public ResponseEntity<String> handleMailException(MailException e){
-       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable TO send email, please try again later");
+       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable TO send email, please try again later"+e.getMessage());
     }
 }

@@ -1,18 +1,49 @@
-spring.application.name=projectName
+spring.application.name=HyMarket
 
-spring.datasource.url=jdbc:postgresql://localhost:5432/databaseName
-spring.datasource.username=username
-spring.datasource.password=yourPassword
+# DB
+spring.datasource.url=${SPRING_DATASOURCE_URL}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+
 spring.datasource.driver-class-name=org.postgresql.Driver
-
-
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=false
-spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 
-server.error.include-message=always
+# Redis
+spring.data.redis.host=${SPRING_DATA_REDIS_HOST}
+spring.data.redis.port=${SPRING_DATA_REDIS_PORT:6379}
 
+# JWT
+jwt.secret.key=${JWT_SECRET_KEY}
 
+# Mail
+spring.mail.host=smtp.gmail.com
+spring.mail.port=465
+spring.mail.username=${SPRING_MAIL_USERNAME}
+spring.mail.password=${SPRING_MAIL_PASSWORD}
+spring.mail.properties.mail.smtp.auth=${SPRING_MAIL_SMTP_AUTH}
+spring.mail.properties.mail.smtp.starttls.enable=${SPRING_MAIL_STARTTLS}
 
-server.reactive.session.cookie.same-site=strict
-jwt.secret.key=secretKey
+# Cloudinary
+cloudinary.cloud-name=${CLOUDINARY_CLOUD_NAME}
+cloudinary.api-key=${CLOUDINARY_API_KEY}
+cloudinary.api-secret=${CLOUDINARY_API_SECRET}
+
+# Razorpay
+razorpay.key.id=${RAZORPAY_KEY_ID}
+razorpay.key.secret=${RAZORPAY_KEY_SECRET}
+
+# OpenAI
+spring.ai.openai.api-key=${SPRING_AI_OPENAI_API_KEY}
+
+# Server
+server.address=0.0.0.0
+server.port=${PORT:8080}
+
+# Performance
+spring.main.lazy-initialization=true
+spring.datasource.hikari.initialization-fail-timeout=0
+spring.datasource.hikari.connection-timeout=20000
+spring.data.redis.timeout=2000
+spring.data.redis.connect-timeout=2000
