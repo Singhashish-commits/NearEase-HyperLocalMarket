@@ -52,7 +52,7 @@ public class AuthService {
         String hashedOtp = passwordEncoder.encode(otp);
         // will use the password encode here  to save the encoded Value
         redisService.saveValue("otp"+email, hashedOtp,10);
-        mailService.sendMail(email,"NearEase – Your OTP Verification Code \n","Your Otp is: "+otp +"\n Please Dont Share with Others !"," \n Valid For 10 Minutes");
+        mailService.sendMail(email,"NearEase – Your OTP Verification Code \n","Your Otp is: "+otp +"\n Please Don't Share with Others !"," \n Valid For 10 Minutes");
 
     }
     // Validation of Otp

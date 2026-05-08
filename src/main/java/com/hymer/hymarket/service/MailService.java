@@ -40,7 +40,7 @@ public class MailService {
 
             // Sender
             Map<String, String> sender = new HashMap<>();
-            sender.put("name", "HyMarket");
+            sender.put("name", "NearEase");
             sender.put("email", senderEmail);
 
             // Receiver
@@ -55,167 +55,238 @@ public class MailService {
             body.put("to", toList);
 
             body.put("subject", subject);
+
             String html = """
-                    <!DOCTYPE html>
-                    <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport"
-                              content="width=device-width, initial-scale=1.0">
+            <!DOCTYPE html>
+            <html lang="en">
 
-                        <title>OTP Verification</title>
+            <head>
 
-                        <style>
+                <meta charset="UTF-8">
 
-                            body{
-                                margin:0;
-                                padding:0;
-                                background:#f4f7fb;
-                                font-family:Arial, Helvetica, sans-serif;
-                            }
+                <meta name="viewport"
+                      content="width=device-width, initial-scale=1.0">
 
-                            .container{
-                                width:100%;
-                                padding:40px 0;
-                            }
+                <title>OTP Verification</title>
 
-                            .card{
-                                max-width:500px;
-                                margin:auto;
-                                background:white;
-                                border-radius:16px;
-                                overflow:hidden;
-                                box-shadow:0 10px 30px rgba(0,0,0,0.1);
-                            }
+                <style>
 
-                            .header{
-                                background:linear-gradient(
-                                    135deg,
-                                    #2563eb,
-                                    #1e40af
-                                );
-                                color:white;
-                                padding:30px;
-                                text-align:center;
-                            }
+                    body{
+                        margin:0;
+                        padding:0;
+                        background:#f4f7fb;
+                        font-family:Arial, Helvetica, sans-serif;
+                    }
 
-                            .header h1{
-                                margin:0;
-                                font-size:28px;
-                            }
+                    .container{
+                        width:100%;
+                        padding:40px 15px;
+                        box-sizing:border-box;
+                    }
 
-                            .content{
-                                padding:40px 30px;
-                                color:#333;
-                            }
+                    .card{
+                        max-width:520px;
+                        margin:auto;
+                        background:white;
+                        border-radius:18px;
+                        overflow:hidden;
+                        box-shadow:
+                        0 10px 30px rgba(0,0,0,0.08);
+                    }
 
-                            .content p{
-                                font-size:16px;
-                                line-height:1.6;
-                            }
+                    .header{
+                        background:linear-gradient(
+                                135deg,
+                                #2563eb,
+                                #1e40af
+                        );
+                        color:white;
+                        padding:40px 20px;
+                        text-align:center;
+                    }
 
-                            .otp-box{
-                                margin:30px 0;
-                                text-align:center;
-                            }
+                    .header h1{
+                        margin:0;
+                        font-size:42px;
+                        font-weight:700;
+                    }
 
-                            .otp{
-                                display:inline-block;
-                                padding:18px 35px;
-                                font-size:36px;
-                                font-weight:bold;
-                                letter-spacing:10px;
-                                color:#2563eb;
-                                background:#eef4ff;
-                                border-radius:12px;
-                                border:2px dashed #2563eb;
-                            }
+                    .header p{
+                        margin-top:12px;
+                        font-size:22px;
+                        opacity:0.95;
+                    }
 
-                            .warning{
-                                margin-top:20px;
-                                padding:15px;
-                                background:#fff4e5;
-                                border-left:5px solid #f59e0b;
-                                border-radius:8px;
-                                font-size:14px;
-                                color:#92400e;
-                            }
+                    .content{
+                        padding:45px 35px;
+                        color:#333;
+                    }
 
-                            .footer{
-                                text-align:center;
-                                padding:20px;
-                                background:#f9fafb;
-                                color:#666;
-                                font-size:14px;
-                            }
+                    .content p{
+                        font-size:18px;
+                        line-height:1.8;
+                        margin:0 0 18px 0;
+                    }
 
-                            .brand{
-                                font-weight:bold;
-                                color:#2563eb;
-                            }
+                    .otp-box{
+                        margin:40px 0;
+                        text-align:center;
+                    }
 
-                        </style>
+                    .otp-title{
+                        font-size:18px;
+                        color:#555;
+                        margin-bottom:18px;
+                        font-weight:600;
+                    }
 
-                    </head>
+                    .otp{
+                        display:inline-block;
+                        padding:18px 34px;
+                        font-size:38px;
+                        font-weight:700;
+                        letter-spacing:10px;
+                        color:#2563eb;
+                        background:#eef4ff;
+                        border-radius:14px;
+                        border:2px solid #c7d7ff;
+                        min-width:260px;
+                        text-align:center;
+                        box-shadow:
+                        0 4px 12px rgba(37,99,235,0.12);
+                    }
 
-                    <body>
+                    .expiry{
+                        text-align:center;
+                        margin-top:10px;
+                        font-size:16px;
+                        color:#555;
+                    }
 
-                    <div class="container">
+                    .warning{
+                        margin-top:30px;
+                        padding:18px;
+                        background:#fff7ed;
+                        border-left:5px solid #f59e0b;
+                        border-radius:10px;
+                        font-size:15px;
+                        color:#92400e;
+                        line-height:1.6;
+                    }
 
-                        <div class="card">
+                    .footer{
+                        text-align:center;
+                        padding:22px;
+                        background:#f9fafb;
+                        color:#777;
+                        font-size:14px;
+                        border-top:1px solid #e5e7eb;
+                    }
 
-                            <div class="header">
-                                <h1>NearEase</h1>
-                                <p>OTP Verification</p>
+                    .brand{
+                        font-weight:700;
+                        color:#2563eb;
+                    }
+
+                    @media only screen and (max-width:600px){
+
+                        .header h1{
+                            font-size:34px;
+                        }
+
+                        .header p{
+                            font-size:18px;
+                        }
+
+                        .content{
+                            padding:35px 22px;
+                        }
+
+                        .otp{
+                            font-size:30px;
+                            letter-spacing:8px;
+                            padding:16px 24px;
+                            min-width:220px;
+                        }
+                    }
+
+                </style>
+
+            </head>
+
+            <body>
+
+            <div class="container">
+
+                <div class="card">
+
+                    <div class="header">
+
+                        <h1>NearEase</h1>
+
+                        <p>OTP Verification</p>
+
+                    </div>
+
+                    <div class="content">
+
+                        <p>Hello User,</p>
+
+                        <p>
+                            Use the following One-Time Password (OTP)
+                            to complete your verification process.
+                        </p>
+
+                        <div class="otp-box">
+
+                            <div class="otp-title">
+                                Your Verification Code
                             </div>
 
-                            <div class="content">
-
-                                <p>Hello User,</p>
-
-                                <p>
-                                    Use the following
-                                    One-Time Password (OTP)
-                                    to complete your verification process.
-                                </p>
-
-                                <div class="otp-box">
-                                    <div class="otp">
-                    """
+                            <div class="otp">
+            """
                     + content +
                     """
                                     </div>
+        
                                 </div>
-
-                                <p>
+        
+                                <div class="expiry">
                                     This OTP is valid for
                                     <strong>10 minutes</strong>.
-                                </p>
-
+                                </div>
+        
                                 <div class="warning">
                                     Do not share this OTP with anyone.
                                     NearEase will never ask for your OTP.
                                 </div>
-
+        
                             </div>
-
+        
                             <div class="footer">
+        
                                 © 2026
                                 <span class="brand">
                                     NearEase
-                                </span>.
-                                All rights reserved.
+                                </span>
+        
+                                <br><br>
+        
+                                All Rights Reserved.
+        
                             </div>
-
+        
                         </div>
-
+        
                     </div>
-
+        
                     </body>
+        
                     </html>
                     """;
 
             body.put("htmlContent", html);
+
             HttpEntity<Map<String, Object>> request =
                     new HttpEntity<>(body, headers);
 
