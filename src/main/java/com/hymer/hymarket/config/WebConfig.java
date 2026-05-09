@@ -13,12 +13,14 @@ public class WebConfig {
 
             public void addCorsMappings(CorsRegistry registry){
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000",
+                        .allowedOrigins(
+                                "http://localhost:3000",
                                 "http://192.168.0.236:3000",
                                 "http://localhost:5173",
-                               " https://nearease-frontend.vercel.app/")
-                        .allowedMethods("*")
+                                "https://nearease-frontend.vercel.app"
+                        )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedHeaders("*")
                         .allowCredentials(true);
             }
 
