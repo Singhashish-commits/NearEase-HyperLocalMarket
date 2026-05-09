@@ -15,7 +15,8 @@ public class WebConfig {
                 registry.addMapping("/**")
                         .allowedOrigins("http://localhost:3000",
                                 "http://192.168.0.236:3000",
-                                "http://localhost:5173")
+                                "http://localhost:5173",
+                               " https://nearease-frontend-git-main-shushants-projects-0d970628.vercel.app/")
                         .allowedMethods("*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*").allowCredentials(true);
