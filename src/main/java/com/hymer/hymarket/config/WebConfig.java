@@ -19,7 +19,7 @@ public class WebConfig {
                                " https://nearease-frontend.vercel.app/")
                         .allowedMethods("*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*").allowCredentials(true);
+                        .allowCredentials(true);
             }
 
         };
