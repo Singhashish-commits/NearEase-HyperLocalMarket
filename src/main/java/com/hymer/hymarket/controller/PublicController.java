@@ -14,11 +14,11 @@ import java.util.List;
 @RestController
 @CrossOrigin
 @RequestMapping("/api/public")
-public class publicController {
+public class PublicController {
     private PublicService publicService;
     private ProviderProfileService providerProfileService;
     @Autowired
-    public publicController(PublicService publicService, ProviderProfileService providerProfileService) {
+    public PublicController(PublicService publicService, ProviderProfileService providerProfileService) {
         this.publicService = publicService;
         this.providerProfileService = providerProfileService;
     }
@@ -45,6 +45,10 @@ public class publicController {
     @GetMapping("/providers/{providerId}/portfolio")
     public ResponseEntity<List<ProviderPortfolioDto>> getProviderPortfolio(@PathVariable Long providerId){
         return ResponseEntity.ok(providerProfileService.getProviderPortfolio(providerId));
+    }
+    @GetMapping("/")
+    public String health() {
+        return "NearEase Backend is Running 🚀";
     }
 
 
