@@ -53,8 +53,7 @@ Employs View-Specific DTOs (e.g., `PublicProviderProfileDto`) to completely sepa
 The project is deployed on Render.
 
 🔗 Live API:
-https://nearease-hyperlocalmarket.onrender.com
-
+https://nearease-hyperlocalmarket.onrender.com/api/public/
 | Method | Endpoint                 |
 | ------ | ------------------------ |
 | POST   | `/api/auth/signup`       |
