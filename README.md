@@ -47,6 +47,33 @@ Employs View-Specific DTOs (e.g., `PublicProviderProfileDto`) to completely sepa
 * A local Redis server running on port `6379`
 * PostgreSQL or MySQL running locally
 
+
+## 🚀 Deployment
+
+The project is deployed on Render.
+
+🔗 Live API:
+https://nearease-hyperlocalmarket.onrender.com
+
+| Method | Endpoint                 |
+| ------ | ------------------------ |
+| POST   | `/api/auth/signup`       |
+| POST   | `/api/auth/login`        |
+| POST   | `/api/auth/send-otp`     |
+| POST   | `/api/auth/resend-otp`   |
+| POST   | `/api/auth/validate-otp` 
+
+| Method | Endpoint                                        |
+| ------ | ----------------------------------------------- |
+| POST   | `/api/provider/apply`                           |
+| POST   | `/api/provider/addService`                      |
+| GET    | `/api/provider/my-portfolio`                    |
+| DELETE | `/api/provider/my-portfolio/{bookingId}/images` |
+| GET    | `/api/provider/my/DashBoard`                    |
+
+
+
+
 ### 1. Clone the repository
 ```bash
 git clone [https://github.com/yourusername/hymarket-backend.git](https://github.com/yourusername/hymarket-backend.git)
@@ -78,3 +105,15 @@ In your Render Web Service dashboard, you must configure the following Environme
 | `JWT_SECRET` | Secure key for token generation | `your_long_production_secret` |
 
 *Note: In production, `spring.jpa.hibernate.ddl-auto` should be set to `validate` or `none`, relying on tools like Flyway/Liquibase for schema migrations.*
+
+
+
+Future Improvements
+Real-time Chat
+Notification System
+Microservices Migration
+Improve Spring Ai ChatBot
+
+Author
+
+Ashish Kumar
