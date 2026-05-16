@@ -77,7 +77,7 @@ public class JwtService {
     private Claims extractAllClaims(String token) {
 //        return Jwts.parser()
 //                .verifyWith((SecretKey) getKey())
-//                .build().parseClaimsJws(token).getBody();
+//                .build().parseClaimsJws(tokeAn).getBody();
 
         return Jwts.parser()
                 .verifyWith((SecretKey) getKey())
