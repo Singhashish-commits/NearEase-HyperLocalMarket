@@ -1,4 +1,4 @@
-# 🛠️ HyMarket: Next-Gen Service Marketplace API
+#  HyMarket: Next-Gen Service Marketplace API
 
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
 ![Spring AI](https://img.shields.io/badge/Spring_AI-1.1.4-6DB33F?style=for-the-badge)
@@ -10,7 +10,7 @@ HyMarket is an enterprise-grade backend infrastructure for a two-sided service m
 
 ---
 
-## ✨ Core Engineering Features
+##  Core Engineering Features
 
 ### 1. Escrow-Style Payment Lifecycle & Strict Refund Math
 To protect both providers and customers, the platform holds funds in Escrow (`PAID_TO_PLATFORM`). Funds are only disbursed (`TRANSFERRED_TO_PROVIDER`) upon job completion via an OTP handshake.
@@ -27,18 +27,19 @@ Employs View-Specific DTOs (e.g., `PublicProviderProfileDto`) to completely sepa
 
 ---
 
-## 🏗️ Architecture & Tech Stack
+##  Architecture & Tech Stack
 
 * **Language:** Java 17+
 * **Framework:** Spring Boot 3.x
 * **AI Integration:** Spring AI, OpenAI API, SimpleVectorStore
-* **Database:** PostgreSQL (Production on Render) / MySQL (Local)
+* **Database:** PostgreSQL (Production on Render as well as Local) 
 * **Caching:** Redis
 * **Security:** Spring Security & JWT Authentication
+* **Mail Service.** used Java Mail sender of the local Deployment  but render blocks the smtp so added the Brevo for the mail(otp) for securing the application and valid service completion 
 
 ---
 
-## 🚀 Quick Start (Local Setup)
+##  Quick Start (Local Setup)
 
 ### Prerequisites
 * Java 17+ installed
@@ -53,7 +54,7 @@ cd hymarket-backend
 
 ---
 
-## ☁️ Production Deployment (Render)
+##  Production Deployment (Render)
 
 This application is configured for seamless deployment on [Render](https://render.com). 
 
