@@ -48,7 +48,7 @@ public class PublicController {
     }
     @GetMapping("/")
     public String health() {
-        return "NearEase Backend is Running 🚀";
+        return "NearEase Backend is Running ";
     }
 
 

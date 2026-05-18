@@ -9,7 +9,7 @@ public class UserProfileDto {
     private String lastName;
     private String email;
     private String phone;
-    // Can Add the Profile Picture here later
+    private String imageUrl;
 
 
 }

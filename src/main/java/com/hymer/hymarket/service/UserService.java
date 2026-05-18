@@ -4,6 +4,8 @@ import com.hymer.hymarket.Repository.UserRepository;
 import com.hymer.hymarket.dto.*;
 import com.hymer.hymarket.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -60,6 +62,8 @@ public class UserService {
     public void updateDetails(UserUpdateDto userUpdateDto) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
+        System.out.println("updating detail for the email"+email);
+        System.out.println(" but the databse return email"+user.getEmail());
         if(userUpdateDto.getUsername() != null) {
             user.setUsername(userUpdateDto.getUsername());
         }
@@ -90,7 +94,7 @@ public class UserService {
 
     }
 
-    public ApiResponse verifyAndUpdateEmail(OtpRequestDto otpRequestDto) {
+    public ResponseEntity<ApiResponse> verifyAndUpdateEmail(OtpRequestDto otpRequestDto) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
         String plainOtp = otpRequestDto.getOtp();
@@ -105,9 +109,22 @@ public class UserService {
         user.setEmail(otpRequestDto.getEmail());
         String jwtToken = jwtService.generateToken(user.getEmail());
         userRepository.save(user);
-
         redisService.deleteValue(redisKey);
-        return new ApiResponse(true, jwtToken);
+        return new ResponseEntity<>( new ApiResponse(true, jwtToken), HttpStatus.OK);
+    }
 
+
+    public ResponseEntity<UserProfileDto> myDetails() {
+        String email =  SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(()-> new RuntimeException("User not found"));
+
+        UserProfileDto userProfileDto = new UserProfileDto();
+        userProfileDto.setFirstName(user.getFirstName());
+        userProfileDto.setLastName(user.getLastName());
+        userProfileDto.setEmail(user.getEmail());
+        userProfileDto.setPhone(user.getPhoneNumber());
+        userProfileDto.setImageUrl(user.getProfilePictureImageUrl());
+        return new ResponseEntity<>(userProfileDto, HttpStatus.OK);
     }
 }

@@ -14,6 +14,7 @@ import java.util.Map;
 @RequestMapping("/api/user-update")
 public class UserController {
     private final UserService userService;
+
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
@@ -36,7 +37,7 @@ public class UserController {
     }
 
     @PostMapping("/update-details")
-    public ResponseEntity<ApiResponse> updateDetails(UserUpdateDto userUpdateDto) {
+    public ResponseEntity<ApiResponse> updateDetails(@RequestBody UserUpdateDto userUpdateDto) {
         userService.updateDetails(userUpdateDto);
         return ResponseEntity.ok(
                 new ApiResponse(true,"Details updated successfully !!")
@@ -51,7 +52,12 @@ public class UserController {
 
     @PostMapping("/verify-email-update")
     public ResponseEntity<ApiResponse> verifyEmailUpdate(@RequestBody OtpRequestDto otpRequestDto) {
-      ApiResponse response = userService.verifyAndUpdateEmail(otpRequestDto);
-        return ResponseEntity.ok(response);
+     return  userService.verifyAndUpdateEmail(otpRequestDto);
+
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserProfileDto> myDetails(){
+        return userService.myDetails();
     }
 }
