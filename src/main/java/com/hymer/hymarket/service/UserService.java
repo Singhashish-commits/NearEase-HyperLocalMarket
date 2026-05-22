@@ -2,6 +2,7 @@ package com.hymer.hymarket.service;
 
 import com.hymer.hymarket.Repository.UserRepository;
 import com.hymer.hymarket.dto.*;
+import com.hymer.hymarket.model.Roles;
 import com.hymer.hymarket.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class UserService {
@@ -125,6 +128,8 @@ public class UserService {
         userProfileDto.setEmail(user.getEmail());
         userProfileDto.setPhone(user.getPhoneNumber());
         userProfileDto.setImageUrl(user.getProfilePictureImageUrl());
+        Set<Roles> roles = user.getRoles();
+        userProfileDto.setRoles(roles);
         return new ResponseEntity<>(userProfileDto, HttpStatus.OK);
     }
 }
