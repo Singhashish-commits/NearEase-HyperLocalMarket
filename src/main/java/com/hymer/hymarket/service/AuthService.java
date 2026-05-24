@@ -27,10 +27,11 @@ public class AuthService {
     private  final JwtService jwtService;
     private final RedisService redisService;
     private final MailService mailService;
+    private final UsernameBloomService usernameBloomService;
 
     // Autowiring the object of classes from different classes
     @Autowired
-    public AuthService(UserRepository userRepo , PasswordEncoder passwordEncoder, RoleRepository roleRepository, AuthenticationManager authenticationManager, JwtService jwtService, RedisService redisService, MailService mailService) {
+    public AuthService(UserRepository userRepo , PasswordEncoder passwordEncoder, RoleRepository roleRepository, AuthenticationManager authenticationManager, JwtService jwtService, RedisService redisService, MailService mailService, UsernameBloomService usernameBloomService) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
@@ -38,6 +39,7 @@ public class AuthService {
         this.jwtService = jwtService;
         this.redisService = redisService;
         this.mailService = mailService;
+        this.usernameBloomService = usernameBloomService;
     }
     // for The random otp generation in more secure way
     private final SecureRandom secureRandom = new SecureRandom();
@@ -91,7 +93,7 @@ public class AuthService {
         if(userRepo.existsByEmail((signUpRequest.getEmail()))){
            throw new RuntimeException("Email already exists");
         }
-        if(userRepo.existsByEmail(signUpRequest.getUsername())){
+        if(userRepo.existsByUsername(signUpRequest.getUsername())){
             throw new RuntimeException("Username already exists");
         }
         User user = new User();
@@ -105,6 +107,7 @@ public class AuthService {
         Roles userRole = roleRepository.findByName("ROLE_USER").orElseThrow(() -> new RuntimeException("Role Not Found"));
         user.setRoles(Set.of(userRole));
         userRepo.save(user);
+        usernameBloomService.addUsername(user.getUsername().toLowerCase());
         return new ApiResponse(true,"Registration Successful!");
 
     }
@@ -136,5 +139,14 @@ public class AuthService {
 
         // 6. Return the pure JwtResponse DTO (using the 5-argument constructor)
         return new JwtResponse(token,  user.getId(), user.getEmail(), roles);
+    }
+
+
+    public boolean isUserNameAvailable(String username) {
+        String normalizedUsername = username.toLowerCase();
+       if(!usernameBloomService.mightExist(normalizedUsername)){
+           return true;
+       }
+       return !userRepo.existsByUsername(username.toLowerCase());
     }
 }

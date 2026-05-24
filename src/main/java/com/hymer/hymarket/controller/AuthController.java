@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @CrossOrigin()
 @RequestMapping("/api/auth")
@@ -17,7 +19,11 @@ public class AuthController {
             this.authService = authService;
     }
 
-
+    @GetMapping("/check/username")
+    public ResponseEntity<Map<String, Boolean>> checkUsername(@RequestParam("username") String username){
+        boolean available = authService.isUserNameAvailable(username);
+        return ResponseEntity.ok(Map.of("available", available));
+    }
 
     @PostMapping("/send-otp")
     public ResponseEntity<String> sendOtp(@RequestBody OtpRequestDto otpRequestDto){
