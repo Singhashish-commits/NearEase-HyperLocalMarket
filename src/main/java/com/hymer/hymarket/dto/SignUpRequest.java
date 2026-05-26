@@ -24,6 +24,6 @@ public class SignUpRequest {
     private String firstName;
     private String lastName;
     @NotBlank(message = "phone no cant be blank")
-    private String PhoneNumber;
+    private String phoneNumber;
 
 }
