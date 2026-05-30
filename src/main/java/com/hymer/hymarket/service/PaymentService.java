@@ -53,6 +53,11 @@ public class PaymentService {
         if(booking.getBookingStatus()!= BookingStatus.CONFIRMED){
             throw new RuntimeException("Booking is Not confirmed yet Payment can be done Only After order gets Confirmed");
         }
+        if(booking.getPaymentStatus() != PaymentStatus.UNPAID){
+            throw new RuntimeException(
+                    "Payment already initiated for this booking"
+            );
+        }
 //        RazorpayClient razorpayClient = new RazorpayClient(razorPayKey,razorPaySecret);
         double actualPrice = booking.getServiceOffering().getPrice();
         int finalPrice = (int)Math.round(actualPrice * 100); // RazorPay accepts amount in small Amount
@@ -101,8 +106,9 @@ public class PaymentService {
         double refundAmount = actualPrice - platformFee;
         PaymentTransection refundTxn = new PaymentTransection();
         refundTxn.setBooking(booking);
-        refundTxn.setAmount((int)(refundAmount*100));
+        refundTxn.setAmount((int)Math.round(refundAmount*100));
         refundTxn.setCurrency("INR");
+        refundTxn.setPaymentStatus(PaymentStatus.REFUNDED);
         if(platformFee==0){
             refundTxn.setStatus("Full Amount will be Processed");
         }
@@ -128,12 +134,34 @@ public class PaymentService {
         double payableAmount = actualPrice - platformFee;
         PaymentTransection paymentTxn = new PaymentTransection();
         paymentTxn.setBooking(booking);
-        paymentTxn.setAmount((int)payableAmount*100);
+        paymentTxn.setAmount((int)Math.round(payableAmount * 100));
         paymentTxn.setCurrency("INR");
         paymentTxn.setPaymentStatus(PaymentStatus.TRANSFER_TO_PROVIDER);
+        paymentTxn.setStatus("MOCK_TRANSFER_SUCCESS");
 
         paymentRepository.save(paymentTxn);
         booking.setPaymentStatus(PaymentStatus.TRANSFER_TO_PROVIDER);
+        bookingRepo.save(booking);
+    }
+
+    @Transactional
+    public void mockPaymentSuccess(Long bookingId){
+
+        Booking booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+        if(booking.getPaymentStatus() != PaymentStatus.UNPAID){
+            throw new RuntimeException(
+                    "Booking payment already processed");
+        }
+        PaymentTransection transaction = paymentRepository.findByBooking(booking)
+                        .orElseThrow(() -> new RuntimeException("Transaction not found"));
+        transaction.setStatus("SUCCESS");
+        transaction.setPaymentStatus(
+                PaymentStatus.PAID_TO_PLATFORM);
+
+        booking.setPaymentStatus(
+                PaymentStatus.PAID_TO_PLATFORM);
+        paymentRepository.save(transaction);
         bookingRepo.save(booking);
     }
 

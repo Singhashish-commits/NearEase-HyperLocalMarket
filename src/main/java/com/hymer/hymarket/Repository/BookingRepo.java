@@ -13,10 +13,12 @@ public interface BookingRepo extends JpaRepository<Booking, Long> {
    List<Booking> findByProviderId(long providerId);
    List<Booking> findByServiceOfferingProviderProfileIdAndBookingStatus(Long providerId, BookingStatus status);
 
-   @Query("SELECT sum(b.serviceOffering.price) from Booking b where b.serviceOffering.providerProfile.id= :providerId and b.bookingStatus = 'COMPLETED'")
-    Double calculateTotalEarning(@Param("providerId") Long providerId,
-                                 @Param("bookingStatus") BookingStatus bookingStatus );
-
+    @Query("""
+SELECT SUM(b.serviceOffering.price)FROM Booking b WHERE b.serviceOffering.providerProfile.id = :providerId
+        AND b.bookingStatus = :bookingStatus""")
+    Double calculateTotalEarning(
+            @Param("providerId") Long providerId,
+            @Param("bookingStatus") BookingStatus bookingStatus);
 
 
     long countByServiceOfferingProviderProfileIdAndBookingStatus(long providerId, BookingStatus bookingStatus);

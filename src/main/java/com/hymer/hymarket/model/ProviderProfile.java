@@ -13,14 +13,10 @@ import lombok.*;
 public class ProviderProfile {
     @Id
     private Long id;
-
     private String bio;
-
     private String skills;
     private String experience;
-
     private String address;
-
     private String city;
     private String state;
     private Long pinCode;

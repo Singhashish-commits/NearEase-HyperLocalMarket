@@ -1,5 +1,6 @@
 package com.hymer.hymarket.Repository;
 
+import com.hymer.hymarket.model.Booking;
 import com.hymer.hymarket.model.PaymentTransection;
 import com.razorpay.Payment;
 import org.springframework.data.domain.Limit;
@@ -13,4 +14,5 @@ public interface PaymentRepository  extends JpaRepository<PaymentTransection, Lo
     Optional<PaymentTransection> findByRazorPayOrderId(String razorPayOrderId, Limit limit);
 
     Optional<PaymentTransection> findByBookingId(Long bookingId);
-}
+
+    Optional<PaymentTransection> findByBooking(Booking booking);}

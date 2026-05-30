@@ -10,10 +10,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ProviderProfileRepository  extends JpaRepository<ProviderProfile,Integer> {
+public interface ProviderProfileRepository  extends JpaRepository<ProviderProfile,Long> {
     Optional<ProviderProfile> findByUser(User user);
 
     Double getRatingById(long id);
+    Double findAverageRatingById(Long id);
 
     List<ProviderProfile> findByIsVerified(boolean isVerified);
 }

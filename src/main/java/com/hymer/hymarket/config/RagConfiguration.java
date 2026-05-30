@@ -13,13 +13,13 @@ import org.springframework.core.io.Resource;
 public class RagConfiguration {
     @Value("classpath:Docs/PlatformRules.txt")
     private Resource rulesDocument;
-//
+
 //    @Bean
 //    public VectorStore vectorStore(EmbeddingModel embeddingModel){
 //        SimpleVectorStore vectorStore = new SimpleVectorStore(embeddingModel);
 //            return vectorStore;
 //
-//    }
+//    }return
 
 
 

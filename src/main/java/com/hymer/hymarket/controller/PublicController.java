@@ -46,6 +46,14 @@ public class PublicController {
     public ResponseEntity<List<ProviderPortfolioDto>> getProviderPortfolio(@PathVariable Long providerId){
         return ResponseEntity.ok(providerProfileService.getProviderPortfolio(providerId));
     }
+    @GetMapping("services/all")
+    public ResponseEntity<List<ServiceOfferingResponse>>  getAllServiceOffering(){
+        return ResponseEntity.ok(publicService.getAllServices());
+    }
+
+
+
+
     @GetMapping("/")
     public String health() {
         return "NearEase Backend is Running ";

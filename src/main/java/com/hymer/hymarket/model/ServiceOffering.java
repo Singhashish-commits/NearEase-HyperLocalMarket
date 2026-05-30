@@ -14,7 +14,7 @@ public class ServiceOffering {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
-    @JoinColumn(name = "provide_profile_id", nullable = false)
+    @JoinColumn(name = "provider_profile_id", nullable = false)
     private ProviderProfile providerProfile;
     @ManyToOne
     @JoinColumn(name = "service_type_id", nullable = false)

@@ -7,6 +7,7 @@ import com.hymer.hymarket.Repository.ServiceTypeRepo;
 import com.hymer.hymarket.dto.ServiceOfferingResponse;
 import com.hymer.hymarket.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -45,4 +46,8 @@ public class PublicService {
     }
 
 
+    public List<ServiceOfferingResponse> getAllServices() {
+        List<ServiceOffering> serviceOffering = serviceOfferingRepo.findAll();
+        return serviceOffering.stream().map(ServiceOfferingMapper::mapDto).toList();
+    }
 }

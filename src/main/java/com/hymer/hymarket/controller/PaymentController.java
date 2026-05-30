@@ -39,5 +39,21 @@ public class PaymentController {
       }
 
 
+    @PostMapping("/mock-success/{bookingId}")
+    public ResponseEntity<ApiResponse> mockPaymentSuccess(
+            @PathVariable Long bookingId) {
+
+        try {
+            paymentService.mockPaymentSuccess(bookingId);
+            return ResponseEntity.ok(
+                    new ApiResponse(true, "Mock payment completed successfully"));
+
+        } catch (Exception e) {
+
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(false, e.getMessage()));
+        }
+    }
+
 
 }

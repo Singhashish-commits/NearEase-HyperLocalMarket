@@ -15,4 +15,6 @@ public interface ServiceOfferingRepo  extends JpaRepository<ServiceOffering,Inte
     Optional<ServiceOffering> findById(Integer id);
 
     List<ServiceOffering> findByProviderProfileId(long providerId);
+
+    boolean existsByProviderProfileIdAndServiceTypeId(Long providerId, Long serviceTypeId);
 }
