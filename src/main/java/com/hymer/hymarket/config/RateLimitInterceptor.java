@@ -1,0 +1,53 @@
+package com.hymer.hymarket.config;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.redisson.api.RRateLimiter;
+import org.redisson.api.RateIntervalUnit;
+import org.redisson.api.RateType;
+import org.redisson.api.RedissonClient;
+import org.redisson.client.RedisClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
+
+@Component
+public class RateLimitInterceptor  implements HandlerInterceptor {
+    private final RedissonClient redissonClient;
+    @Autowired
+    public RateLimitInterceptor(RedissonClient redissonClient) {
+        this.redissonClient = redissonClient;
+    }
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+                String clientIp = getClentIp(request);
+                String limiterKey= "rate_limiter:" + clientIp;
+                RRateLimiter rateLimiter = redissonClient.getRateLimiter(limiterKey);
+                rateLimiter.trySetRate(RateType.OVERALL, 5, 1, RateIntervalUnit.SECONDS);
+                boolean isAllowed = rateLimiter.tryAcquire(1);
+        if (!isAllowed) {
+            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Too many requests. Please try again later.\"}");
+            return false;
+        }
+        return true;
+
+
+
+    }
+
+
+
+    private String getClentIp(HttpServletRequest request) {
+        String xfHeader = request.getHeader("x-forwarded-for");
+        if (xfHeader == null || xfHeader.isEmpty() || !xfHeader.contains(request.getRemoteAddr())) {
+            xfHeader = request.getRemoteAddr();
+        }
+
+        return xfHeader.split(",")[0];
+    }
+
+}
