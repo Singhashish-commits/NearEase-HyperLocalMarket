@@ -51,14 +51,13 @@ public class PaymentService {
             throw new RuntimeException("Unauthorized to pay for this booking");
         }
         if(booking.getBookingStatus()!= BookingStatus.CONFIRMED){
-            throw new RuntimeException("Booking is Not confirmed yet Payment can be done Only After order gets Confirmed");
-        }
-        if(booking.getPaymentStatus() != PaymentStatus.UNPAID){
             throw new RuntimeException(
-                    "Payment already initiated for this booking"
-            );
+                    "Booking is Not confirmed yet Payment can be done Only After order gets Confirmed");
         }
-//        RazorpayClient razorpayClient = new RazorpayClient(razorPayKey,razorPaySecret);
+        if(  booking.getBookingStatus()==null && booking.getPaymentStatus() != PaymentStatus.UNPAID){
+            throw new RuntimeException(
+                    "Payment already initiated for this booking");
+        }
         double actualPrice = booking.getServiceOffering().getPrice();
         int finalPrice = (int)Math.round(actualPrice * 100); // RazorPay accepts amount in small Amount
         JSONObject paymentRequest = new JSONObject();

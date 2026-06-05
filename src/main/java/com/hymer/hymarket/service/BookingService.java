@@ -8,6 +8,8 @@ import com.hymer.hymarket.dto.ApiResponse;
 import com.hymer.hymarket.dto.BookingRequestDto;
 import com.hymer.hymarket.dto.BookingResponseDto;
 import com.hymer.hymarket.model.*;
+import jakarta.persistence.EntityNotFoundException;
+import org.hibernate.boot.model.naming.IllegalIdentifierException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -266,6 +269,25 @@ public class BookingService{
 
  }
 
+    public List<BookingResponseDto> findAllBookings() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
+        User user  = userRepository.findByEmail(email)
+                .orElseThrow(()->new EntityNotFoundException("User not found"));
+        Set<Roles> roles = user.getRoles();
+
+        boolean isAdmin = roles.stream()
+                .anyMatch(role ->
+                        role.getName().equals("ROLE_ADMIN"));
+        if(!isAdmin){
+            throw new  IllegalIdentifierException(" unAuthorized");
+        }
+        List<Booking> bookings= bookingRepo.findAll();
+        if(bookings==null){
+            throw new EntityNotFoundException("No booking Available ");
+        }
+         return bookings.stream().map(BookingResponseDtoMapper::mapDto).toList();
+
+    }
 }
 

@@ -1,8 +1,10 @@
 package com.hymer.hymarket.controller;
 import com.hymer.hymarket.dto.ApiResponse;
+import com.hymer.hymarket.dto.BookingResponseDto;
 import com.hymer.hymarket.dto.ProviderPortfolioDto;
 import com.hymer.hymarket.dto.ProviderProfileDto;
 import com.hymer.hymarket.service.AdminService;
+import com.hymer.hymarket.service.BookingService;
 import com.hymer.hymarket.service.ProviderProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +19,13 @@ public class AdminController {
 
     private final   AdminService adminService;
     private  final ProviderProfileService providerProfileService;
+    private final BookingService bookingService;
+
     @Autowired
-    public AdminController(AdminService adminService, ProviderProfileService providerProfileService){
+    public AdminController(AdminService adminService, ProviderProfileService providerProfileService, BookingService bookingService){
         this.adminService = adminService;
         this.providerProfileService = providerProfileService;
+        this.bookingService = bookingService;
     }
     @PostMapping("/provider/approve/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -32,6 +37,11 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ProviderProfileDto>> getPendingAccount(){
         return  ResponseEntity.ok(adminService.pendingRequest());
+    }
+
+    @GetMapping("/all/bookings")
+    public ResponseEntity<List<BookingResponseDto>> getAllBookings(){
+        return ResponseEntity.ok(bookingService.findAllBookings());
     }
 
 
