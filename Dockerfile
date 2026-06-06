@@ -12,7 +12,7 @@ RUN cp src/main/resources/application.properties.example src/main/resources/appl
 RUN mvn clean package -DskipTests
 
 # Stage 2: Create the runtime image
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
 # Copy the generated JAR from the builder stage
