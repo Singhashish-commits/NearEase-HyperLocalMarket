@@ -28,10 +28,11 @@ public class AuthService {
     private final RedisService redisService;
     private final MailService mailService;
     private final UsernameBloomService usernameBloomService;
+    private final OtpService otpService;
 
     // Autowiring the object of classes from different classes
     @Autowired
-    public AuthService(UserRepository userRepo , PasswordEncoder passwordEncoder, RoleRepository roleRepository, AuthenticationManager authenticationManager, JwtService jwtService, RedisService redisService, MailService mailService, UsernameBloomService usernameBloomService) {
+    public AuthService(UserRepository userRepo , PasswordEncoder passwordEncoder, RoleRepository roleRepository, AuthenticationManager authenticationManager, JwtService jwtService, RedisService redisService, MailService mailService, UsernameBloomService usernameBloomService, OtpService otpService) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
@@ -40,46 +41,24 @@ public class AuthService {
         this.redisService = redisService;
         this.mailService = mailService;
         this.usernameBloomService = usernameBloomService;
+        this.otpService = otpService;
     }
-    // for The random otp generation in more secure way
-    private final SecureRandom secureRandom = new SecureRandom();
 
 // Otp for SignUp
     public void sendSignUpOtp(String email){
         if(userRepo.existsByEmail(email)){
             throw new RuntimeException("This Email is Already in use ,Please use another");
         }
-        //generate otp ;
-        String otp = String.valueOf(100000+secureRandom.nextInt(900000));
-        String hashedOtp = passwordEncoder.encode(otp);
-        // will use the password encode here  to save the encoded Value
-        redisService.saveValue("otp"+email, hashedOtp,10);
-        mailService.sendMail(email,"NearEase – Your OTP Verification Code \n","Your Otp is: "+otp +"\n Please Don't Share with Others !"," \n Valid For 10 Minutes");
-
+            otpService.sendSignUpOtp(email);
     }
     // Validation of Otp
     public void validateOtp(String email, String otp){
-        // the otp we get here should be encoded
-        String redisKey = "otp"+email;
-        String  storedHashedOtp = redisService.getValue(redisKey);
-//        get the encoded password and match
-        if(storedHashedOtp==null){
-            throw new RuntimeException(" Otp Expired , Please Try Again ");
-        }
-        if(!passwordEncoder.matches(otp,storedHashedOtp)){
-            throw new RuntimeException(" Invalid Otp! Please try again ");
-        }
-        redisService.deleteValue(redisKey);
-        redisService.saveValue("is_verified:"+email,"true",20);
+
+        otpService.validateOtp(email,otp);
 
     }
     public void resendOtp(String email){
-        String resendKey = "Auth_otp:"+email;
-        if(redisService.getValue(resendKey) != null){
-            throw new RuntimeException(" please wait 1 Minute to resend Otp ");
-        }
-        redisService.saveValue(resendKey,"WAIT",1);
-        sendSignUpOtp(email);
+        otpService.ResendAuthOtp(email);
     }
 
     // save user taking signup request and after verifying Otp;

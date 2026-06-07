@@ -39,9 +39,10 @@ public class BookingService{
     private final RedisService redisService;
     private final PasswordEncoder passwordEncoder;
     private final FileUploadService fileUploadService;
+    private final OtpService otpService;
 
     @Autowired
-    public BookingService(BookingRepo bookingRepo, ServiceOfferingRepo serviceOfferingRepo, UserRepository userRepository, MailService mailService, RedisService redisService, PasswordEncoder passwordEncoder, FileUploadService fileUploadService) {
+    public BookingService(BookingRepo bookingRepo, ServiceOfferingRepo serviceOfferingRepo, UserRepository userRepository, MailService mailService, RedisService redisService, PasswordEncoder passwordEncoder, FileUploadService fileUploadService, OtpService otpService) {
         this.bookingRepo = bookingRepo;
         this.serviceOfferingRepo = serviceOfferingRepo;
         this.userRepository = userRepository;
@@ -49,13 +50,10 @@ public class BookingService{
         this.redisService = redisService;
         this.passwordEncoder = passwordEncoder;
         this.fileUploadService = fileUploadService;
+        this.otpService = otpService;
     }
-    // For the Otp generation used in generateAndSendOtp method  here
-    private static final SecureRandom secureRandom = new SecureRandom();
-
 
     public BookingResponseDto createBooking(BookingRequestDto bookingRequestDto) {
-        // get the current logged-in user
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User customer = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
         ServiceOffering offering  = serviceOfferingRepo.findById((int)bookingRequestDto.getServiceOfferingId())
@@ -125,20 +123,7 @@ public class BookingService{
         return BookingResponseDtoMapper.mapDto(updatedBooking);
 
     }
- private void generateAndSendOtp(Booking booking){
-    int optValue = 1000+secureRandom.nextInt(9000);
-    String otp = String.valueOf(optValue);
-    String hashedOtp= passwordEncoder.encode(otp);
-    String redisKey = "booking_otp:" + booking.getId();
-    redisService.saveValue(redisKey,hashedOtp,10);
 
-    String subject = "Yor Service Otp (Valid for 10 minutes)";
-     String body = "Your OTP is: " + otp +
-             "\n\nGive this code to the provider to mark booking confirmed." +
-             "\n\nThis OTP is valid for 10 minutes.";
-    mailService.sendMail(booking.getCustomer().getEmail(),subject,body,"Valid for 10 min");
-
- }
 @Transactional
  public BookingResponseDto completeBookingWithOtp(Long bookingId,
                                                   String otp,
@@ -174,9 +159,6 @@ public class BookingService{
             String afterImageUrl =  fileUploadService.uploadFile(afterImage);
             booking.setAfterImages(afterImageUrl);
         }
-
-
-        // if everything goes good booking marked completed;
      booking.setBookingStatus(BookingStatus.COMPLETED);
         redisService.deleteValue(redisKey);
      return BookingResponseDtoMapper.mapDto(booking);
@@ -195,7 +177,7 @@ public class BookingService{
         double estimateFee = calculateCancellationFee(booking);
         booking.setCancellationFee(estimateFee);
         bookingRepo.save(booking);
-        generateAndSendOtp(booking);
+        otpService.generateBookingOtp(booking);
         return new ApiResponse(true,"OTP  fro the cancellation has been sent to the Registered Email");
  }
 
@@ -234,13 +216,8 @@ public class BookingService{
             return originalPrice*0.20;
 
         }
-//          no Cancellation before two hours;
         return 0.0;
  }
-
-
-
-
 
  public void resendOtp(Long bookingId){
         Booking booking = bookingRepo.findById(bookingId)
@@ -266,7 +243,7 @@ public class BookingService{
 
      redisService.saveValue(rateLimitKey, "WAIT", 1);
 
-        generateAndSendOtp(booking);
+     otpService.generateBookingOtp(booking);
 
  }
 
