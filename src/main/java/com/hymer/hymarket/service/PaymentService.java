@@ -45,47 +45,51 @@ public class PaymentService {
     }
 
     @Transactional
-    public PaymentResponseDto createOrder(Long bookingId) throws Exception{
-        Booking booking = bookingRepo.findById(bookingId).orElseThrow(()->new RuntimeException("Booking not found"));
+    public PaymentResponseDto createOrder(Long bookingId) throws Exception {
+
+        Booking booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
 
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        if(!booking.getCustomer().getEmail().equals(userEmail)){
+        if (!booking.getCustomer().getEmail().equals(userEmail)) {
             throw new RuntimeException("Unauthorized to pay for this booking");
         }
-        if(booking.getBookingStatus()!= BookingStatus.CONFIRMED){
-            throw new RuntimeException(
-                    "Booking is Not confirmed yet Payment can be done Only After order gets Confirmed");
-        }
 
-        if(  booking.getBookingStatus()==null && booking.getPaymentStatus() != PaymentStatus.UNPAID){
-            throw new RuntimeException(
-                    "Payment already initiated for this booking");
+        if (booking.getBookingStatus() != BookingStatus.CONFIRMED) {
+            throw new RuntimeException("Booking is not confirmed yet. Payment can be done only after the order is confirmed.");
         }
 
         Optional<PaymentTransection> existingTxnOpt = paymentRepository.findByBookingId(bookingId);
 
         if (existingTxnOpt.isPresent()) {
             PaymentTransection existingTxn = existingTxnOpt.get();
+
             if (existingTxn.getPaymentStatus() == PaymentStatus.UNPAID) {
-                PaymentResponseDto response = getPaymentResponseDto(existingTxn, booking);
+                PaymentResponseDto response = new PaymentResponseDto();
+                response.setRazorpayOrderId(existingTxn.getRazorPayOrderId());
+                response.setAmountInPaise(existingTxn.getAmount());
+                response.setCurrency(existingTxn.getCurrency());
+                response.setCustomerName(booking.getCustomer().getFirstName() + " " + booking.getCustomer().getLastName());
+                response.setCustomerEmail(booking.getCustomer().getEmail());
+                response.setCustomerPhone(booking.getCustomer().getPhoneNumber());
 
                 return response;
             } else {
-
-                throw new RuntimeException("Payment has already been processed for this booking.");
+                throw new RuntimeException("Payment has already been processed or initiated for this booking.");
             }
         }
 
         double actualPrice = booking.getServiceOffering().getPrice();
-        int finalPrice = (int)Math.round(actualPrice * 100); // RazorPay accepts amount in small Amount
+        int finalPrice = (int) Math.round(actualPrice * 100);
+
         JSONObject paymentRequest = new JSONObject();
-        paymentRequest.put("amount",finalPrice);
-        paymentRequest.put("currency","INR");
+        paymentRequest.put("amount", finalPrice);
+        paymentRequest.put("currency", "INR");
         paymentRequest.put("receipt", "txn_booking_" + bookingId);
 
         Order razorPayOrder = razorpayClient.orders.create(paymentRequest);
         String orderId = razorPayOrder.get("id");
+
         PaymentTransection transaction = new PaymentTransection();
         transaction.setBooking(booking);
         transaction.setRazorPayOrderId(orderId);
@@ -95,31 +99,20 @@ public class PaymentService {
         transaction.setPaymentStatus(PaymentStatus.UNPAID);
         paymentRepository.save(transaction);
 
-
         booking.setTransectionId(orderId);
         bookingRepo.save(booking);
+
         PaymentResponseDto response = new PaymentResponseDto();
         response.setRazorpayOrderId(orderId);
         response.setAmountInPaise(finalPrice);
         response.setCurrency("INR");
-        response.setCustomerName(booking.getCustomer().getFirstName()+" "+booking.getCustomer().getLastName());
-        response.setCustomerEmail(booking.getCustomer().getEmail());
-        response.setCustomerPhone(booking.getCustomer().getPhoneNumber());
-
-        return  response;
-
-    }
-
-    private static @NotNull PaymentResponseDto getPaymentResponseDto(PaymentTransection existingTxn, Booking booking) {
-        PaymentResponseDto response = new PaymentResponseDto();
-        response.setRazorpayOrderId(existingTxn.getRazorPayOrderId());
-        response.setAmountInPaise(existingTxn.getAmount());
-        response.setCurrency(existingTxn.getCurrency());
         response.setCustomerName(booking.getCustomer().getFirstName() + " " + booking.getCustomer().getLastName());
         response.setCustomerEmail(booking.getCustomer().getEmail());
         response.setCustomerPhone(booking.getCustomer().getPhoneNumber());
+
         return response;
     }
+
 
     @Transactional
     public void processRefund(Long bookingId) throws Exception{
