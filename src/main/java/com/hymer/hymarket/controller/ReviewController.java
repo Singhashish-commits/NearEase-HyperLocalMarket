@@ -24,7 +24,7 @@ public class ReviewController {
    @PostMapping("/new/review")
     public ResponseEntity<?> WriteNewReview(@RequestBody ReviewRequestDto review){
         reviewService.writeReview(
-                review.getBookingID(),
+                review.getBookingId(),
                 review.getRating(),
                 review.getComment()
         );
