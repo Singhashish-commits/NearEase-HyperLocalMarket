@@ -30,7 +30,6 @@
         <java.version>17</java.version>
         <spring-ai.version>1.1.4</spring-ai.version>
     </properties>
-    <!-- PASTE THIS WHOLE BLOCK HERE -->
     <dependencyManagement>
         <dependencies>
             <dependency>

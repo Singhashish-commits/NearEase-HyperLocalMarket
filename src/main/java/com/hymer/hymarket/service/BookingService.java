@@ -9,6 +9,7 @@ import com.hymer.hymarket.dto.BookingRequestDto;
 import com.hymer.hymarket.dto.BookingResponseDto;
 import com.hymer.hymarket.model.*;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.hibernate.boot.model.naming.IllegalIdentifierException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,7 +139,7 @@ public class BookingService{
     mailService.sendMail(booking.getCustomer().getEmail(),subject,body,"Valid for 10 min");
 
  }
-
+@Transactional
  public BookingResponseDto completeBookingWithOtp(Long bookingId,
                                                   String otp,
                                                   MultipartFile beforeImage,
@@ -214,7 +215,7 @@ public class BookingService{
         }
         booking.setBookingStatus(BookingStatus.CANCELLED);
         bookingRepo.save(booking);
-        System.out.println("the Booking that got cancled is the booking with id "+booking.getId());
+        System.out.println("the Booking that got cancelled is the booking with id "+booking.getId());
         redisService.deleteValue(redisKey);
         return BookingResponseDtoMapper.mapDto(booking);
 

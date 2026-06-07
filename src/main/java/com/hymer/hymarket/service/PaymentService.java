@@ -11,12 +11,15 @@ import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import jakarta.annotation.PostConstruct;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 public class PaymentService {
@@ -54,10 +57,26 @@ public class PaymentService {
             throw new RuntimeException(
                     "Booking is Not confirmed yet Payment can be done Only After order gets Confirmed");
         }
+
         if(  booking.getBookingStatus()==null && booking.getPaymentStatus() != PaymentStatus.UNPAID){
             throw new RuntimeException(
                     "Payment already initiated for this booking");
         }
+
+        Optional<PaymentTransection> existingTxnOpt = paymentRepository.findByBookingId(bookingId);
+
+        if (existingTxnOpt.isPresent()) {
+            PaymentTransection existingTxn = existingTxnOpt.get();
+            if (existingTxn.getPaymentStatus() == PaymentStatus.UNPAID) {
+                PaymentResponseDto response = getPaymentResponseDto(existingTxn, booking);
+
+                return response;
+            } else {
+
+                throw new RuntimeException("Payment has already been processed for this booking.");
+            }
+        }
+
         double actualPrice = booking.getServiceOffering().getPrice();
         int finalPrice = (int)Math.round(actualPrice * 100); // RazorPay accepts amount in small Amount
         JSONObject paymentRequest = new JSONObject();
@@ -89,6 +108,17 @@ public class PaymentService {
 
         return  response;
 
+    }
+
+    private static @NotNull PaymentResponseDto getPaymentResponseDto(PaymentTransection existingTxn, Booking booking) {
+        PaymentResponseDto response = new PaymentResponseDto();
+        response.setRazorpayOrderId(existingTxn.getRazorPayOrderId());
+        response.setAmountInPaise(existingTxn.getAmount());
+        response.setCurrency(existingTxn.getCurrency());
+        response.setCustomerName(booking.getCustomer().getFirstName() + " " + booking.getCustomer().getLastName());
+        response.setCustomerEmail(booking.getCustomer().getEmail());
+        response.setCustomerPhone(booking.getCustomer().getPhoneNumber());
+        return response;
     }
 
     @Transactional
