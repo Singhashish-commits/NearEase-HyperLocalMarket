@@ -12,7 +12,7 @@ public class ReviewResponseDtoMapper {
         reviewResponseDto.setId(review.getId());
         reviewResponseDto.setCreatedAt(review.getCreatedAt());
         reviewResponseDto.setRating(review.getRating());
-        reviewResponseDto.setCustomerName(review.getComment());
+        reviewResponseDto.setComment(review.getComment());
         if(review.getBooking().getCustomer().getFirstName() != null){
             reviewResponseDto.setCustomerName(review.getBooking().getCustomer().getFirstName());
         }else{
@@ -21,4 +21,5 @@ public class ReviewResponseDtoMapper {
         return reviewResponseDto;
 
     }
+
 }
