@@ -1,5 +1,6 @@
 package com.hymer.hymarket.config;
 
+import com.hymer.hymarket.Repository.UserRepository;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,10 +9,13 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class BloomFilterConfig {
+
     private final RedissonClient redissonClient;
+    private final UserRepository userRepository;
     @Autowired
-    public BloomFilterConfig(RedissonClient redissonClient) {
+    public BloomFilterConfig(RedissonClient redissonClient, UserRepository userRepository) {
         this.redissonClient = redissonClient;
+        this.userRepository = userRepository;
     }
     @Bean
     public RBloomFilter<String> usernameBloomFilter() {

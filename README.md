@@ -1,4 +1,4 @@
- # NearEase — Hyperlocal Service Marketplace
+#  NearEase — Hyperlocal Service Marketplace
 
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
 ![Spring AI](https://img.shields.io/badge/Spring_AI-1.1.4-6DB33F?style=for-the-badge)
@@ -6,130 +6,113 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Deployed on Render](https://img.shields.io/badge/Deployed_on-Render-46E3B7?style=for-the-badge&logo=render)
 
-
-A production-deployed backend for a two-sided service marketplace connecting customers with local service providers. Built with Spring Boot and deployed on Render.
-
-**Live API:** https://nearease-hyperlocalmarket.onrender.com/api/public/
+HyMarket is an enterprise-grade backend infrastructure for a two-sided service marketplace (similar to UrbanCompany or TaskRabbit). It handles complex state management for bookings, secure Escrow-style payment routing, Redis-backed OTP handshakes, and features an intelligent RAG (Retrieval-Augmented Generation) Customer Support AI.
 
 ---
 
-## What this project does
+##  Core Engineering Features
 
-NearEase allows customers to discover nearby service providers (plumbers, electricians, cleaners, etc.), book services, and pay securely. Providers manage their portfolio, accept bookings, and receive payouts only after verified job completion.
+### 1. Escrow-Style Payment Lifecycle & Strict Refund Math
+To protect both providers and customers, the platform holds funds in Escrow (`PAID_TO_PLATFORM`). Funds are only disbursed (`TRANSFERRED_TO_PROVIDER`) upon job completion via an OTP handshake.
+* **Cancellation Engine:** Implements a strict time-based penalty algorithm. Cancellations > 2 hours prior yield a 100% refund; cancellations < 2 hours trigger an automatic 20% platform penalty, accurately tracked in the `payment_transactions` audit table.
 
----
+### 2. Intelligent Support Bot (RAG Architecture)
+Built with **Spring AI** and an in-memory Vector Store. Instead of generic LLM responses, the bot intercepts user queries, searches the platform's proprietary rules document (`platform-rules.txt`), and forces the OpenAI model to answer *strictly* based on marketplace policies.
 
-## Key engineering decisions
+### 3. Redis-Backed State Verification
+Job completions and two-step booking cancellations are secured via transient OTPs cached in Redis, preventing state manipulation and ensuring physical presence/consent.
 
-### Escrow-style payment flow
-Payments are held by the platform (`PAID_TO_PLATFORM`) and only disbursed to providers (`TRANSFERRED_TO_PROVIDER`) after a job-completion OTP handshake — protecting both parties. A time-based cancellation engine applies a 20% platform penalty for late cancellations (under 2 hours), tracked in a `payment_transactions` audit table.
-
-### Redis-backed OTP verification
-Job completions and booking cancellations require transient OTPs stored in Redis with TTL-based expiry — preventing state manipulation and ensuring physical presence. Also used for user signup verification via Brevo (SMTP blocked on Render's free tier, so switched to Brevo API).
-
-### Bloom filter for username validation
-Probabilistic username uniqueness check using a Redis Bloom Filter — eliminates redundant DB reads on a high-frequency signup path.
-
-### RAG-based support chatbot
-Built with Spring AI and an in-memory Vector Store. The bot retrieves answers from a platform-rules document (`platform-rules.txt`) before querying OpenAI — responses are grounded in actual marketplace policies, not generic LLM output.
-
-### DTO-driven data masking
-View-specific DTOs (e.g., `PublicProviderProfileDto`) ensure phone numbers and exact locations are never returned to unauthenticated callers.
+### 4. DTO-Driven Data Masking
+Employs View-Specific DTOs (e.g., `PublicProviderProfileDto`) to completely separate public search results from sensitive PII, ensuring phone numbers and exact locations are never exposed to unauthenticated networks.
 
 ---
 
-## Tech stack
+##  Architecture & Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Spring Boot 3.x, Java 17 |
-| Security | Spring Security, JWT |
-| Database | PostgreSQL |
-| Caching | Redis (OTP, Bloom Filter) |
-| AI | Spring AI, OpenAI API, SimpleVectorStore |
-| Mail | Brevo (production), JavaMailSender (local) |
-| Deployment | Render (app + managed PostgreSQL + Redis) |
-| Containerization | Docker |
+* **Language:** Java 17+
+* **Framework:** Spring Boot 3.x
+* **AI Integration:** Spring AI, OpenAI API, SimpleVectorStore
+* **Database:** PostgreSQL (Production on Render as well as Local) 
+* **Caching:** Redis
+* **Security:** Spring Security & JWT Authentication
+* **Mail Service.** used Java Mail sender of the local Deployment  but render blocks the smtp so added the Brevo for the mail(otp) for securing the application and valid service completion 
 
 ---
 
-## API overview
+##  Quick Start (Local Setup)
 
-**Auth**
-```
-POST /api/auth/signup
-POST /api/auth/login
-POST /api/auth/send-otp
-POST /api/auth/validate-otp
-```
+### Prerequisites
+* Java 17+ installed
+* Maven installed
+* A local Redis server running on port `6379`
+* PostgreSQL or MySQL running locally
 
-**Provider**
-```
-POST   /api/provider/apply
-POST   /api/provider/addService
-GET    /api/provider/my-portfolio
-GET    /api/provider/my/DashBoard
-DELETE /api/provider/my-portfolio/{bookingId}/images
-```
 
-Full Swagger docs available at `/swagger-ui.html` when running locally.
+## 🚀 Deployment
 
----
+The project is deployed on Render.
 
-## Running locally
+🔗 Live API:
+https://nearease-hyperlocalmarket.onrender.com/api/public/
+| Method | Endpoint                 |
+| ------ | ------------------------ |
+| POST   | `/api/auth/signup`       |
+| POST   | `/api/auth/login`        |
+| POST   | `/api/auth/send-otp`     |
+| POST   | `/api/auth/resend-otp`   |
+| POST   | `/api/auth/validate-otp` 
 
-**Prerequisites:** Java 17+, Maven, PostgreSQL, Redis on port 6379
+| Method | Endpoint                                        |
+| ------ | ----------------------------------------------- |
+| POST   | `/api/provider/apply`                           |
+| POST   | `/api/provider/addService`                      |
+| GET    | `/api/provider/my-portfolio`                    |
+| DELETE | `/api/provider/my-portfolio/{bookingId}/images` |
+| GET    | `/api/provider/my/DashBoard`                    |
 
+
+
+
+### 1. Clone the repository
 ```bash
-git clone https://github.com/Singhashish-commits/NearEase-HyperLocalMarket.git
-cd NearEase-HyperLocalMarket
-```
-
-Create a PostgreSQL database:
-```sql
-CREATE DATABASE nearease_db;
-```
-
-Set environment variables (or update `application.properties`):
-```
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/nearease_db
-SPRING_DATASOURCE_USERNAME=your_userName
-SPRING_DATASOURCE_PASSWORD=your_password
-SPRING_DATA_REDIS_HOST=localhost
-SPRING_DATA_REDIS_PORT=6379
-SPRING_AI_OPENAI_API_KEY=your_openai_key
-JWT_SECRET=your_secret_key
-```
-
-```bash
-mvn spring-boot:run
-```
+git clone [https://github.com/yourusername/hymarket-backend.git](https://github.com/yourusername/hymarket-backend.git)
+cd hymarket-backend
 
 ---
 
-## Deploying on Render
+##  Production Deployment (Render)
 
-**Build command:** `mvn clean package -DskipTests`  
-**Start command:** `java -jar target/hymarket-0.0.1-SNAPSHOT.jar`
+This application is configured for seamless deployment on [Render](https://render.com). 
 
-Required environment variables on Render:
+### 1. Build & Start Commands
+When setting up the Web Service on Render, use the following commands:
+* **Build Command:** `mvn clean package -DskipTests`
+* **Start Command:** `java -jar target/hymarket-0.0.1-SNAPSHOT.jar` *(Note: ensure the jar name matches your `pom.xml` version)*
 
-| Variable | Description |
-|---|---|
-| `SPRING_PROFILES_ACTIVE` | Set to `prod` |
-| `SPRING_DATASOURCE_URL` | Render internal DB URL |
-| `SPRING_DATASOURCE_USERNAME` | DB user |
-| `SPRING_DATASOURCE_PASSWORD` | DB password |
-| `SPRING_DATA_REDIS_HOST` | Render Redis internal host |
-| `SPRING_DATA_REDIS_PORT` | `6379` |
-| `SPRING_AI_OPENAI_API_KEY` | OpenAI key |
-| `JWT_SECRET` | Long random secret string |
+### 2. Production Environment Variables
+In your Render Web Service dashboard, you must configure the following Environment Variables. Do **not** commit these to GitHub:
 
----
+| Variable Name | Description | Example / Source |
+| :--- | :--- | :--- |
+| `SPRING_PROFILES_ACTIVE` | Forces Spring to use production settings | `prod` |
+| `SPRING_DATASOURCE_URL` | The internal DB URL provided by Render | `jdbc:postgresql://hostname/dbname` |
+| `SPRING_DATASOURCE_USERNAME`| Database user | `render_user` |
+| `SPRING_DATASOURCE_PASSWORD`| Database password | `********` |
+| `SPRING_DATA_REDIS_HOST` | Render Redis Internal URL | `red-cxyz...` |
+| `SPRING_DATA_REDIS_PORT` | Render Redis Port | `6379` |
+| `SPRING_AI_OPENAI_API_KEY` | Your OpenAI Key | `sk-********` |
+| `JWT_SECRET` | Secure key for token generation | `your_long_production_secret` |
 
-## What I'd improve next
+*Note: In production, `spring.jpa.hibernate.ddl-auto` should be set to `validate` or `none`, relying on tools like Flyway/Liquibase for schema migrations.*
 
-- Migrate to microservices — payment, booking, and notification as separate services
-- Add real-time booking updates via WebSocket
-- Replace SimpleVectorStore with a persistent vector DB (e.g., pgvector) for the AI chatbot
-- Introduce Flyway for proper schema migration management
+
+
+Future Improvements
+Real-time Chat
+Notification System
+Microservices Migration
+Improve Spring Ai ChatBot
+
+Author
+
+Ashish Kumar

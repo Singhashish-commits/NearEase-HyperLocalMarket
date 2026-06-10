@@ -14,6 +14,8 @@ public class UserProfileDtoMapper {
 
         userProfileDto.setFirstName(user.getFirstName());
         userProfileDto.setLastName(user.getLastName());
+        userProfileDto.setImageUrl(user.getProfilePictureImageUrl());
+        userProfileDto.setRoles(user.getRoles());
         return userProfileDto;
 
     }

@@ -107,7 +107,6 @@ public class HyMarketApplication {
                 userRepository.save(admin);
                 System.out.println("--- ADMIN USER CREATED: admin123@gmail.com / admin@123 ---");
             }
-
         };
     }
 }

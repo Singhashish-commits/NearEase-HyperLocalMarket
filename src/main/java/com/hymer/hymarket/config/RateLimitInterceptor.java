@@ -39,7 +39,7 @@ public class RateLimitInterceptor  implements HandlerInterceptor {
         }
                 String limiterKey= "rate_limiter:" + clientId;
                 RRateLimiter rateLimiter = redissonClient.getRateLimiter(limiterKey);
-                rateLimiter.trySetRate(RateType.OVERALL, 5, 1, RateIntervalUnit.SECONDS);
+                rateLimiter.setRate(RateType.OVERALL, 100, 1, RateIntervalUnit.SECONDS);
                 boolean isAllowed = rateLimiter.tryAcquire(1);
         if (!isAllowed) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
