@@ -2,15 +2,13 @@ package com.hymer.hymarket.controller;
 
 import com.hymer.hymarket.dto.ApiResponse;
 import com.hymer.hymarket.dto.PaymentResponseDto;
+import com.hymer.hymarket.dto.PaymentVerificationDto;
 import com.hymer.hymarket.model.Booking;
 import com.hymer.hymarket.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -52,6 +50,24 @@ public class PaymentController {
 
             return ResponseEntity.badRequest()
                     .body(new ApiResponse(false, e.getMessage()));
+        }
+    }
+
+    @PostMapping("/verify-payment")
+    public ResponseEntity<?> verifyPayment(@RequestBody PaymentVerificationDto verificationDto) {
+        try {
+            boolean isSuccess = paymentService.verifyAndCompletePayment(verificationDto);
+            if (isSuccess) {
+                return ResponseEntity.ok("Payment verified and booking finalized successfully.");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment verification failed.");
+            }
+        } catch (RuntimeException e) {
+            // Catches invalid signature errors
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error while verifying payment: " + e.getMessage());
         }
     }
 

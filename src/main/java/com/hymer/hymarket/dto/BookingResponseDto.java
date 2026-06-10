@@ -25,4 +25,5 @@ public class BookingResponseDto {
     private String beforeImages;
     private String afterImages;
     private double cancellationFee;
+
 }

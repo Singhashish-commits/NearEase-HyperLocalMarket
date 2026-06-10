@@ -3,6 +3,7 @@ package com.hymer.hymarket.service;
 import com.hymer.hymarket.Repository.BookingRepo;
 import com.hymer.hymarket.Repository.PaymentRepository;
 import com.hymer.hymarket.dto.PaymentResponseDto;
+import com.hymer.hymarket.dto.PaymentVerificationDto;
 import com.hymer.hymarket.model.Booking;
 import com.hymer.hymarket.model.BookingStatus;
 import com.hymer.hymarket.model.PaymentStatus;
@@ -10,6 +11,7 @@ import com.hymer.hymarket.model.PaymentTransection;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
+import com.razorpay.Utils;
 import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
@@ -185,6 +187,41 @@ public class PaymentService {
                 PaymentStatus.PAID_TO_PLATFORM);
         paymentRepository.save(transaction);
         bookingRepo.save(booking);
+    }
+
+
+    public boolean verifyAndCompletePayment(PaymentVerificationDto verificationDto) throws Exception {
+
+        PaymentTransection transaction = paymentRepository.findByBookingId(verificationDto.getBookingId())
+                .orElseThrow(() -> new RuntimeException("Transaction not found for this booking"));
+
+        JSONObject options = new JSONObject();
+        options.put("razorpay_order_id", verificationDto.getRazorpayOrderId());
+        options.put("razorpay_payment_id", verificationDto.getRazorpayPaymentId());
+        options.put("razorpay_signature", verificationDto.getRazorpaySignature());
+
+
+        boolean isSignatureValid = Utils.verifyPaymentSignature(options, razorPaySecret);
+
+        if (isSignatureValid) {
+            transaction.setRazorPayPaymentId(verificationDto.getRazorpayPaymentId());
+            transaction.setRazorPaySignature(verificationDto.getRazorpaySignature());
+            transaction.setPaymentStatus(PaymentStatus.PAID); // Update status to Paid
+            transaction.setStatus("SUCCESS");
+
+            paymentRepository.save(transaction);
+
+            Booking booking = transaction.getBooking();
+            booking.setBookingStatus(BookingStatus.CONFIRMED); // or COMPLETED depending on your logic
+            bookingRepo.save(booking);
+
+            return true;
+        } else {
+            transaction.setPaymentStatus(PaymentStatus.FAILED);
+            transaction.setStatus("FAILED");
+            paymentRepository.save(transaction);
+            throw new RuntimeException("Payment verification failed. Invalid Signature.");
+        }
     }
 
 
