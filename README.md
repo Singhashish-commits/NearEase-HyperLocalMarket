@@ -77,15 +77,45 @@ Full Swagger docs available at `/swagger-ui.html` when running locally.
 
 ---
 
-## Performance Benchmarks
+##  Performance & Load Testing
 
-Load tested with JMeter (local environment):
-- 500 concurrent users, 20s ramp-up
-- Average latency: 8ms
-- p95 latency: 11ms
-- Max latency: 27ms
-- Throughput: 25 req/sec
-- Error rate: 0%
+The platform was load tested using **Apache JMeter** to evaluate responsiveness and stability under concurrent traffic.
+
+**Test Configuration**
+
+* Concurrent Users: **500**
+* Ramp-Up Period: **20 seconds**
+* Environment: **Local Development**
+* Error Rate: **0%**
+
+### 📊 Aggregate Report
+
+![Aggregate Report](docs/benchmarks/aggregate-report.png)
+
+###  Successful Request Execution
+
+![Hit Response](docs/benchmarks/hit-response.png)
+
+### 📝 Application Logs During Load Test
+
+![Console Logs](docs/benchmarks/Console-log.png)
+
+| Metric                | Result          |
+| --------------------- | --------------- |
+| Total Requests        | 500             |
+| Average Response Time | 8 ms            |
+| 95th Percentile (P95) | 11 ms           |
+| Maximum Response Time | 27 ms           |
+| Throughput            | 25 Requests/sec |
+| Error Rate            | 0%              |
+
+### Key Observations
+
+* Handled **500 concurrent requests** without failures.
+* Maintained **sub-30ms maximum response time** throughout the test.
+* Achieved **0% error rate** under load.
+* Demonstrated stable throughput and consistent latency distribution.
+
 
 Environment: Spring Boot + PostgreSQL + Redis (local Docker)
 
