@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.SecureRandom;
-import java.util.List;
 import java.util.Set;
 
 @Service
@@ -22,17 +21,17 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RedisService redisService;
-    private final MailService mailService;
     private final JwtService jwtService;
+    private final OtpService otpService;
 
     @Autowired
-    public UserService(FileUploadService fileUploadService, UserRepository userRepository, PasswordEncoder passwordEncoder, RedisService redisService, MailService mailService, JwtService jwtService) {
+    public UserService(FileUploadService fileUploadService, UserRepository userRepository, PasswordEncoder passwordEncoder, RedisService redisService,  JwtService jwtService, OtpService otpService) {
         this.fileUploadService = fileUploadService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.redisService = redisService;
-        this.mailService = mailService;
         this.jwtService = jwtService;
+        this.otpService = otpService;
     }
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -65,8 +64,6 @@ public class UserService {
     public void updateDetails(UserUpdateDto userUpdateDto) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
-        System.out.println("updating detail for the email"+email);
-        System.out.println(" but the databse return email"+user.getEmail());
         if(userUpdateDto.getUsername() != null) {
             user.setUsername(userUpdateDto.getUsername());
         }
@@ -91,9 +88,7 @@ public class UserService {
         String plainOtp = String.valueOf(100000 + secureRandom.nextInt(900000));
         String hashedOtp = passwordEncoder.encode(plainOtp);
         redisService.saveValue("update_email"+otpRequestDto.getEmail(),hashedOtp,10);
-        mailService.sendMail(otpRequestDto.getEmail(), "verify your new Email",
-                "your OTP to update Your email is "+ plainOtp+ "\n valid fo r10 minutes ",
-                "team HY-market" );
+        otpService.sendSignUpOtp(email);
 
     }
 

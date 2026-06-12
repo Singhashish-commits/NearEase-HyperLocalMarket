@@ -14,11 +14,13 @@ public class OtpService {
     private final RedisService redisService;
     private final MailService mailService;
     private final PasswordEncoder passwordEncoder;
+    private final MailTemplateService mailTemplateService;
     @Autowired
-    public OtpService(RedisService redisService, MailService mailService, PasswordEncoder passwordEncoder) {
+    public OtpService(RedisService redisService, MailService mailService, PasswordEncoder passwordEncoder, MailTemplateService mailTemplateService) {
         this.redisService = redisService;
         this.mailService = mailService;
         this.passwordEncoder = passwordEncoder;
+        this.mailTemplateService = mailTemplateService;
     }
 
     public void sendSignUpOtp(String email){
@@ -26,15 +28,15 @@ public class OtpService {
                 String hashedOtp = passwordEncoder.encode(otp);
                 // will use the password encode here  to save the encoded Value
                 redisService.saveValue("otp"+email, hashedOtp,10);
-                mailService.sendMail(email,"NearEase – Your OTP Verification Code \n","Your Otp is: "+otp +"\n Please Don't Share with Others !"," \n Valid For 10 Minutes");
-
+        mailService.sendMail(
+                email,
+                "NearEase – Your OTP Verification Code", mailTemplateService.buildOtpHtml(otp));
 
     }
 
     public void validateOtp( String email ,String otp){
         String redisKey = "otp"+email;
         String  storedHashedOtp = redisService.getValue(redisKey);
-//        get the encoded password and match
         if(storedHashedOtp==null){
             throw new RuntimeException(" Otp Expired , Please Try Again ");
         }
@@ -60,16 +62,13 @@ public class OtpService {
         String hashedOtp= passwordEncoder.encode(otp);
         String redisKey = "booking_otp:" + booking.getId();
         redisService.saveValue(redisKey,hashedOtp,10);
-
-        String subject = "Your Service Otp (Valid for 10 minutes)";
-        String body = "Your OTP is: " + otp +
-                "\n\nGive this code to the provider to mark booking confirmed." +
-                "\n\nThis OTP is valid for 10 minutes.";
-        mailService.sendMail(booking.getCustomer().getEmail(),subject,body,"Valid for 10 min");
-
+        String email = booking.getCustomer().getEmail();
+        mailService.sendMail(
+                email,
+                "NearEase – Your OTP Verification Code",
+                mailTemplateService.buildOtpHtml(otp)
+        );
     }
-
-
 
 
 }

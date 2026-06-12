@@ -40,9 +40,10 @@ public class BookingService{
     private final PasswordEncoder passwordEncoder;
     private final FileUploadService fileUploadService;
     private final OtpService otpService;
+    private final BookingNotificationManager notificationManager;
 
     @Autowired
-    public BookingService(BookingRepo bookingRepo, ServiceOfferingRepo serviceOfferingRepo, UserRepository userRepository, MailService mailService, RedisService redisService, PasswordEncoder passwordEncoder, FileUploadService fileUploadService, OtpService otpService) {
+    public BookingService(BookingRepo bookingRepo, ServiceOfferingRepo serviceOfferingRepo, UserRepository userRepository, MailService mailService, RedisService redisService, PasswordEncoder passwordEncoder, FileUploadService fileUploadService, OtpService otpService, BookingNotificationManager notificationManager) {
         this.bookingRepo = bookingRepo;
         this.serviceOfferingRepo = serviceOfferingRepo;
         this.userRepository = userRepository;
@@ -51,6 +52,7 @@ public class BookingService{
         this.passwordEncoder = passwordEncoder;
         this.fileUploadService = fileUploadService;
         this.otpService = otpService;
+        this.notificationManager = notificationManager;
     }
 
     public BookingResponseDto createBooking(BookingRequestDto bookingRequestDto) {
@@ -108,6 +110,7 @@ public class BookingService{
 
     }
 //    THe method for the Provider so that he can mark the booking to make it confirm-accept
+    @Transactional
     public BookingResponseDto updateBookingStatus(Long bookingId, BookingStatus newStatus){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User currentUser = userRepository.findByEmail(email)
@@ -117,11 +120,43 @@ public class BookingService{
        if(!booking.getProvider().getUser().getId().equals(currentUser.getId())){
            throw new RuntimeException("Not Authorized to manage this Booking");
        }
+        BookingStatus current = booking.getBookingStatus();
+        if (current == BookingStatus.COMPLETED
+                || current == BookingStatus.REJECTED
+                || current == BookingStatus.CANCELLED_BY_PROVIDER
+                || current == BookingStatus.CANCELLED) {
+
+            throw new RuntimeException(
+                    "Booking can no longer be modified");
+        }
+        if (newStatus == BookingStatus.COMPLETED) {
+            throw new RuntimeException(
+                    "Booking completion requires OTP verification");
+        }
+        if (newStatus == BookingStatus.PENDING) {
+            throw new RuntimeException(
+                    "Cannot manually set booking to PENDING");
+        }
+        if (current == BookingStatus.PENDING) {
+
+            if (newStatus != BookingStatus.CONFIRMED
+                    && newStatus != BookingStatus.REJECTED) {
+
+                throw new RuntimeException(
+                        "Pending booking can only be confirmed or rejected");
+            }
+        }
+        if (current == BookingStatus.CONFIRMED) {
+            if (newStatus != BookingStatus.CANCELLED_BY_PROVIDER) {
+                throw new RuntimeException(
+                        "Confirmed booking can only be cancelled by provider");
+            }
+        }
+
         booking.setBookingStatus(newStatus);
         Booking updatedBooking = bookingRepo.save(booking);
-
+        notificationManager.triggerNotification(booking,newStatus);
         return BookingResponseDtoMapper.mapDto(updatedBooking);
-
     }
 
 @Transactional
@@ -161,9 +196,12 @@ public class BookingService{
         }
      booking.setBookingStatus(BookingStatus.COMPLETED);
         redisService.deleteValue(redisKey);
+        notificationManager.triggerNotification(booking,BookingStatus.COMPLETED);
      return BookingResponseDtoMapper.mapDto(booking);
  }
+
  // this is for the customer
+    @Transactional
  public ApiResponse requestCancellation(Long bookingId){
         String email =  SecurityContextHolder.getContext().getAuthentication().getName();
         Booking booking = bookingRepo.getById(bookingId);
@@ -178,9 +216,10 @@ public class BookingService{
         booking.setCancellationFee(estimateFee);
         bookingRepo.save(booking);
         otpService.generateBookingOtp(booking);
+
         return new ApiResponse(true,"OTP  fro the cancellation has been sent to the Registered Email");
  }
-
+@Transactional
  public BookingResponseDto cancelBookingWithOtp(Long bookingId,String otp){
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Booking booking=bookingRepo.findById(bookingId).orElseThrow(()-> new RuntimeException("Booking Not Found"));
@@ -199,6 +238,7 @@ public class BookingService{
         bookingRepo.save(booking);
         System.out.println("the Booking that got cancelled is the booking with id "+booking.getId());
         redisService.deleteValue(redisKey);
+        notificationManager.triggerNotification(booking,BookingStatus.CANCELLED);
         return BookingResponseDtoMapper.mapDto(booking);
 
 

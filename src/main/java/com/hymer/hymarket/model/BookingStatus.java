@@ -5,6 +5,7 @@ public enum BookingStatus {
     CONFIRMED,  // Provider accepted
     REJECTED,   // Provider said no
     COMPLETED,  // Work done
+    CANCELLED_BY_PROVIDER,
     CANCELLED
 }
 
