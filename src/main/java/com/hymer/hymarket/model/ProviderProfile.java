@@ -26,7 +26,6 @@ public class ProviderProfile {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "user_id")
-//    @JsonManagedReference
     private User user;
 
     public ProviderProfile(User user) {

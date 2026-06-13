@@ -215,35 +215,8 @@ public class ProviderProfileService {
     }
 
 
-    @Transactional
-    public ApiResponse requestDeletion(Long serviceOfferingId)  {
-        ProviderProfile profile = getVerifiedProviderProfile();
-        ServiceOffering offering = serviceOfferingRepo.findById(serviceOfferingId)
-                .orElseThrow(()-> new EntityNotFoundException("Service offering not found"));
-        if(!offering.getProviderProfile().getId().equals(profile.getId()) ) {
-            throw new IllegalArgumentException("Not Authorized to delete this ervice ");
-        }
-        otpService.sendServiceDeleteOtp(serviceOfferingId,profile);
-        return new ApiResponse(true, "Email to Delete this service is Sent Successfully");
-    }
 
-    @Transactional
-    public ApiResponse deleteService(Long serviceOfferingId,String otp) {
-        ProviderProfile profile = getVerifiedProviderProfile();
-        String redisKey= serviceOfferingId+"_delete_"+profile.getId();
-        String hashedOtp = redisService.getValue(redisKey);
-        if(hashedOtp==null){
-            throw new EntityNotFoundException("Otp Expired! please try Again in Some Time ");
-        }
-        if(!passwordEncoder.matches(otp,hashedOtp)){
-            throw new RuntimeException("Invalid Otp, Please try Again Later");
-        }
-        ServiceOffering offering = serviceOfferingRepo.findById(serviceOfferingId)
-                .orElseThrow(()-> new EntityNotFoundException("Service Does Not Exist"));
-        serviceOfferingRepo.delete(offering);
-        redisService.deleteValue(redisKey);
-        return new  ApiResponse(true, "Successfully deleted the service.");
-    }
+
 
 
 

@@ -11,14 +11,11 @@ public class UsernameBloomService {
     public UsernameBloomService(RBloomFilter<String> usernameBloomFilter) {
         this.usernameBloomFilter = usernameBloomFilter;
     }
-    public boolean checkUsername(String username) {
-        return usernameBloomFilter.contains(username);
-    }
     public void addUsername(String username) {
-        usernameBloomFilter.add(username);
+        usernameBloomFilter.add(username.toLowerCase());
     }
 
     public boolean mightExist(String username) {
-        return usernameBloomFilter.contains(username);
+        return usernameBloomFilter.contains(username.toLowerCase());
     }
 }

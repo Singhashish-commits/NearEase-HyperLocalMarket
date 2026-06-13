@@ -22,4 +22,5 @@ public interface UserRepository extends CrudRepository<User,Integer> {
 
    Optional <User> findById(Long id);
 
+    boolean existsByUsernameIgnoreCase(String lowerCase);
 }

@@ -128,7 +128,7 @@ public class AuthService {
        if(!usernameBloomService.mightExist(normalizedUsername)){
            return true;
        }
-       return !userRepo.existsByUsername(username.toLowerCase());
+       return !userRepo.existsByUsernameIgnoreCase(username);
     }
 
     public ApiResponse AccountRecoveryMail(OtpRequestDto otpRequestDto) {
