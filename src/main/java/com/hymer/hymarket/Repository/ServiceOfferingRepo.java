@@ -12,7 +12,7 @@ public interface ServiceOfferingRepo  extends JpaRepository<ServiceOffering,Inte
     List<ServiceOffering> findByServiceTypeId(Long serviceType);
 
 //    List<ServiceOfferingResponse> findByServiceTypeId(Long typeId);
-    Optional<ServiceOffering> findById(Integer id);
+    Optional<ServiceOffering> findById(Long id);
 
     List<ServiceOffering> findByProviderProfileId(long providerId);
 

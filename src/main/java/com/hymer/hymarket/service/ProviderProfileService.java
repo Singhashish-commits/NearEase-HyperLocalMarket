@@ -5,6 +5,7 @@ import com.hymer.hymarket.Mapper.ServiceOfferingMapper;
 import com.hymer.hymarket.Repository.*;
 import com.hymer.hymarket.dto.*;
 import com.hymer.hymarket.model.*;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -71,13 +73,9 @@ public class ProviderProfileService {
     }
 
        @Transactional     // Add The Services
-    public ResponseEntity<ApiResponse> addService(ServiceOfferingRequest serviceRequest, MultipartFile file) throws Exception{
-        //gets the currently logged-in user
-        UserDetails userDetails = (UserDetails) SecurityContextHolder
-                .getContext().getAuthentication().getPrincipal();
-        User user =  userRepository.findByEmail(userDetails.getUsername()).orElseThrow(()-> new RuntimeException("User not found"));
-         // get their provider profile
-        ProviderProfile providerProfile  = user.getProviderProfile();
+    public ResponseEntity<ApiResponse> addService(ServiceOfferingRequest serviceRequest, MultipartFile file) throws IOException{
+
+        ProviderProfile providerProfile  = getVerifiedProviderProfile();
          if(providerProfile==null){
              return  ResponseEntity.badRequest()
                     .body(new ApiResponse(false, "Provider Profile not found"));
@@ -107,26 +105,7 @@ public class ProviderProfileService {
              return ResponseEntity.badRequest().body(new ApiResponse(false,"Description is required"));
          }
          serviceOffering.setDescription(description.trim());
-
-           if(file!=null&& !file.isEmpty()){
-
-               String contentType = file.getContentType();
-               if(contentType == null || !(contentType.equals("image/jpeg")
-                || contentType.equals("image/png")|| contentType.equals("image/webp"))){
-            return ResponseEntity.badRequest().body(new ApiResponse(false,"Only image files are allowed"));
-        }
-        if(file.getSize() > 5 * 1024 * 1024){
-            return ResponseEntity.badRequest().body(new ApiResponse(false, "Image size cannot exceed 5MB"));
-        }
-
-
-             try{
-                 String imageUrl = fileUploadService.uploadFile(file);
-                 serviceOffering.setImageUrl(imageUrl);
-             }catch(Exception e){
-                 return ResponseEntity.badRequest().body(new ApiResponse(false,"Image upload failed"));
-             }
-         }
+           fileUploadService.uploadFile(file);
          serviceOfferingRepo.save(serviceOffering);
          return ResponseEntity.ok(new ApiResponse(true, "Service Added Successfully"));
     }
@@ -192,5 +171,56 @@ public class ProviderProfileService {
     }
 
 
+    public List<ServiceOfferingResponse> MyServices() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("User not found"));
+        if(user.getProviderProfile()==null){
+            throw new EntityNotFoundException("Provider profile not found");
+        }
+        List<ServiceOffering> serviceOfferings = serviceOfferingRepo.findByProviderProfileId(user.getProviderProfile().getId());
+       return serviceOfferings.stream().map(ServiceOfferingMapper::mapDto).toList();
 
+    }
+
+    public ApiResponse editService(Long id, ServiceOfferingRequest serviceRequest,MultipartFile file) throws IOException {
+       ProviderProfile profile = getVerifiedProviderProfile();
+       ServiceOffering exist = serviceOfferingRepo.findById(id)
+               .orElseThrow(()-> new EntityNotFoundException("Service offering not found"));
+       if(profile.getId()!= exist.getProviderProfile().getId()){
+           return new ApiResponse(false, "You don't have permission to edit this service.");
+       }
+       exist.setDescription(serviceRequest.getDescription());
+       exist.setPrice(serviceRequest.getPrice());
+
+        if(!exist.getServiceType().getId().equals(serviceRequest.getServiceTypeId())){
+            ServiceType newType = serviceTypeRepo.findById(serviceRequest.getServiceTypeId())
+                    .orElseThrow(()-> new
+                            RuntimeException("Service Type not find with ID "+serviceRequest.getServiceTypeId()));
+            exist.setServiceType(newType);
+        }
+
+        if(file!= null && !file.isEmpty()){
+            String imgUrl = fileUploadService.uploadFile(file);
+            exist.setImageUrl(imgUrl);
+        }
+        serviceOfferingRepo.save(exist);
+
+       return new ApiResponse(true, "Successfully edited the service.");
+    }
+
+
+
+
+    private ProviderProfile getVerifiedProviderProfile() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        ProviderProfile profile = user.getProviderProfile();
+        if (profile == null || !profile.isVerified()) {
+            throw new RuntimeException("Provider Profile is missing or not verified");
+        }
+        return profile;
+    }
+    
 }

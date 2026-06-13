@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -52,5 +53,20 @@ public class ProviderController {
         ProviderDashBoardDto providerDashBoardDto = providerProfileService.getProviderDashBoard();
         return ResponseEntity.ok(providerDashBoardDto);
     }
+
+    @PostMapping("/my-services")
+    public ResponseEntity<List<ServiceOfferingResponse>> getMyServices(){
+        return ResponseEntity.ok(providerProfileService.MyServices());
+
+    }
+
+    @PostMapping(value = "/edit-service/{id}",consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<ApiResponse> editService(
+            @PathVariable Long id , @RequestPart("serviceDetails") ServiceOfferingRequest serviceRequest,
+            @RequestPart(value ="file",required = false) MultipartFile file) throws IOException {
+                return ResponseEntity.ok(providerProfileService.editService(id,serviceRequest,file));
+    }
+
+
 
 }

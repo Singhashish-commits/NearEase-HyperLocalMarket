@@ -17,9 +17,25 @@ public class FileUploadService {
     public FileUploadService(Cloudinary cloudinary) {
         this.cloudinary = cloudinary;
     }
+
+
     public String uploadFile(MultipartFile file) throws IOException {
-        System.out.println("File received in service layer ");
-        Map uploadFile = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-        return uploadFile.get("secure_url").toString();
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File is required");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null ||
+                !(contentType.equals("image/jpeg")
+                        || contentType.equals("image/png")
+                        || contentType.equals("image/webp"))) {
+            throw new IllegalArgumentException("Only JPEG, PNG and WEBP images are allowed");
+        }
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException("Image size cannot exceed 5 MB");
+        }
+        Map<?, ?> uploadResult = cloudinary.uploader()
+                .upload(file.getBytes(), ObjectUtils.emptyMap());
+
+        return uploadResult.get("secure_url").toString();
     }
 }

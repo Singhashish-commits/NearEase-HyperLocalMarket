@@ -7,6 +7,7 @@ import com.hymer.hymarket.Repository.UserRepository;
 import com.hymer.hymarket.dto.ApiResponse;
 import com.hymer.hymarket.dto.BookingRequestDto;
 import com.hymer.hymarket.dto.BookingResponseDto;
+import com.hymer.hymarket.dto.ServiceOfferingResponse;
 import com.hymer.hymarket.model.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -307,5 +308,7 @@ public class BookingService{
          return bookings.stream().map(BookingResponseDtoMapper::mapDto).toList();
 
     }
+
+
 }
 
