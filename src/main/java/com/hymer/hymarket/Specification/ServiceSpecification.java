@@ -1,11 +1,10 @@
 package com.hymer.hymarket.Specification;
 
 import com.hymer.hymarket.dto.ServiceSearchRequestDto;
-import com.hymer.hymarket.model.ProviderProfile;
-import com.hymer.hymarket.model.ServiceCategory;
-import com.hymer.hymarket.model.ServiceOffering;
-import com.hymer.hymarket.model.ServiceType;
+import com.hymer.hymarket.model.*;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -13,57 +12,78 @@ import java.util.ArrayList;
 import java.util.List;
 @Component
 public class ServiceSpecification {
-    public static Specification<ServiceOffering> getSpecs(ServiceSearchRequestDto serviceSearchRequestDto) {
-        return (root, query, criteriaBuilder) -> {
+    public static Specification<ServiceOffering> getSpecs(ServiceSearchRequestDto dto) {
+        return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            //Filter By Category Name
-            //Service Offering->Service Type-> Service Category
-            if(serviceSearchRequestDto.getCategory()!=null && !serviceSearchRequestDto.getCategory().isEmpty()){
-                Join<ServiceOffering, ServiceType> typeJoin = root.join("serviceType");
-                Join<ServiceType, ServiceCategory> categoryJoin = typeJoin.join("category");
 
-                predicates.add(criteriaBuilder.equal(categoryJoin.get("name"), serviceSearchRequestDto.getCategory()));
+            Join<ServiceOffering, ServiceType>     typeJoin     = root.join("serviceType",     JoinType.LEFT);
+            Join<ServiceType,     ServiceCategory> categoryJoin = typeJoin.join("category",    JoinType.LEFT);
+            Join<ServiceOffering, ProviderProfile> providerJoin = root.join("providerProfile", JoinType.LEFT);
+
+            if (dto.getCategory() != null && !dto.getCategory().isEmpty()) {
+                predicates.add(cb.equal(categoryJoin.get("name"), dto.getCategory()));
             }
 
-            // Filter By price Range
-            if(serviceSearchRequestDto.getMinPrice()!=null){
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("price"), serviceSearchRequestDto.getMinPrice()));
+            if (dto.getMinPrice() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("price"), dto.getMinPrice()));
             }
-            if(serviceSearchRequestDto.getMaxPrice()!=null){
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("price"), serviceSearchRequestDto.getMaxPrice()));
-            }
-            //search using the Keyword , SmartSearch
-            if(serviceSearchRequestDto.getMinPrice()!=null&& ! serviceSearchRequestDto.getSearchKeyword().isEmpty()){
-                String keyword = "%"+ serviceSearchRequestDto.getSearchKeyword().toLowerCase()+"%";
-                Join<ServiceOffering , ServiceType> typeJoin = root.join("serviceType");
-                Predicate descMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("Description")), keyword);
-                Predicate typeNameMatch = criteriaBuilder.like(criteriaBuilder.lower(typeJoin.get("name")), keyword);
-
-                predicates.add(criteriaBuilder.or(descMatch, typeNameMatch));
-            }
-            //Geo-Spatial Search
-            if(serviceSearchRequestDto.getUserLat()!=null && serviceSearchRequestDto.getUserLng()!=null && serviceSearchRequestDto.getRadiusKm()!=null){
-                final double earthRadiusKm = 6371.01;
-                final double degree_Distance = 111.0;
-                // calculate the min and the max Latitude
-                double latDelta = serviceSearchRequestDto.getRadiusKm()/degree_Distance;
-                double minLat = serviceSearchRequestDto.getUserLat()-latDelta;
-                double maxLat = serviceSearchRequestDto.getUserLat()+latDelta;
-
-                // Calculating the user max and min Longitude
-                double lanDelta = serviceSearchRequestDto
-                        .getRadiusKm()/(degree_Distance * Math.cos(Math.toRadians(serviceSearchRequestDto. getUserLat())));
-                double minLng = serviceSearchRequestDto.getUserLng()-lanDelta;
-                double maxLng = serviceSearchRequestDto.getUserLng()+lanDelta;
-
-                // Join Service Offering -> providerProfile to access the data
-                Join<ServiceOffering, ProviderProfile> providerJoin = root.join("providerProfile");
-                predicates.add(criteriaBuilder.between(providerJoin.get("latitude"), minLat, maxLat));
-                predicates.add(criteriaBuilder.between(providerJoin.get("longitude"), minLng, maxLng));
+            if (dto.getMaxPrice() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("price"), dto.getMaxPrice()));
             }
 
+            if (dto.getMinRating() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("rating"), dto.getMinRating()));
+            }
 
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+            // Searches: description, service type name, category name, provider business name
+            if (dto.getSearchKeyword() != null && !dto.getSearchKeyword().isEmpty()) {
+                String keyword = "%" + dto.getSearchKeyword().toLowerCase() + "%";
+
+                Predicate descMatch         = cb.like(cb.lower(root.get("description")),              keyword);
+                Predicate typeNameMatch     = cb.like(cb.lower(typeJoin.get("name")),                 keyword);
+                Predicate categoryNameMatch = cb.like(cb.lower(categoryJoin.get("name")),             keyword);
+                Predicate providerNameMatch = cb.like(cb.lower(providerJoin.get("businessName")),     keyword);
+
+                predicates.add(cb.or(descMatch, typeNameMatch, categoryNameMatch, providerNameMatch));
+            }
+
+            if (dto.getUserLat() != null && dto.getUserLng() != null && dto.getRadiusKm() != null) {
+
+                // Step A: fast bounding box filter (hits DB index)
+                double latDelta = dto.getRadiusKm() / 111.0;
+                double lngDelta = dto.getRadiusKm() / (111.0 * Math.cos(Math.toRadians(dto.getUserLat())));
+
+                predicates.add(cb.between(providerJoin.get("latitude"),
+                        dto.getUserLat() - latDelta,
+                        dto.getUserLat() + latDelta));
+                predicates.add(cb.between(providerJoin.get("longitude"),
+                        dto.getUserLng() - lngDelta,
+                        dto.getUserLng() + lngDelta));
+
+                // Step B: exact Haversine circle (removes bounding box corners)
+                Expression<Double> haversine = cb.function(
+                        "haversine_distance",
+                        Double.class,
+                        cb.literal(dto.getUserLat()),
+                        cb.literal(dto.getUserLng()),
+                        providerJoin.get("latitude"),
+                        providerJoin.get("longitude")
+                );
+                predicates.add(cb.lessThanOrEqualTo(haversine, dto.getRadiusKm()));
+            }
+
+            predicates.add(cb.equal(root.get("status"), ServiceStatus.ACTIVE));
+            if (query != null) {
+                if (dto.getSortBy() != null) {
+                    boolean asc = "asc".equalsIgnoreCase(dto.getSortDirn());
+                    switch (dto.getSortBy()) {
+                        case "price"  -> query.orderBy(asc ? cb.asc(root.get("price"))  : cb.desc(root.get("price")));
+                        case "rating" -> query.orderBy(asc ? cb.asc(root.get("rating")) : cb.desc(root.get("rating")));
+                    }
+                }
+                query.distinct(true);
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 }

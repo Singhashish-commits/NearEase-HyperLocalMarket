@@ -8,11 +8,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ServiceSearchResponseDto {
-    private long id;
+    private Long id;
     private String serviceName;
     private String category;
-    private Double Price;
-    private String Description;
+    private Double price;
+    private String description;
     private String providerProfileName;
     private String imageUrl;
 

@@ -11,7 +11,7 @@ public class ServiceSearchRequestDto {
     private String category;
     private Double minPrice;
     private Double maxPrice;
-    private double minRating;
+    private Double minRating;
     private String searchKeyword;
 
     private String sortBy;
