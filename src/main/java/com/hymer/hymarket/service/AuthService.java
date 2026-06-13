@@ -4,6 +4,7 @@ import com.hymer.hymarket.Repository.UserRepository;
 import com.hymer.hymarket.dto.*;
 import com.hymer.hymarket.model.Roles;
 import com.hymer.hymarket.model.User;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -55,6 +56,7 @@ public class AuthService {
     public void validateOtp(String email, String otp){
 
         otpService.validateOtp(email,otp);
+
 
     }
     public void resendOtp(String email){
@@ -127,5 +129,37 @@ public class AuthService {
            return true;
        }
        return !userRepo.existsByUsername(username.toLowerCase());
+    }
+
+    public ApiResponse AccountRecoveryMail(OtpRequestDto otpRequestDto) {
+        String email = otpRequestDto.getEmail();
+        if(userRepo.existsByEmail(email)){
+            otpService.sendPasswordResetOtp(email);
+        }
+
+        return new ApiResponse(true,
+                "If an account with that email exists, a recovery OTP has been sent.");
+    }
+
+    public ApiResponse changePassword(ChangePasswordDto dto) {
+        String email = dto.getEmail();
+        String key = "reset_otp:" + email;
+         String hashedOtp = redisService.getValue(key);
+         if(hashedOtp==null){
+             throw new RuntimeException("OTP Expired! Please try requesting a new one.");
+         }
+        if (!passwordEncoder.matches(dto.getOtp(), hashedOtp)) {
+            throw new IllegalArgumentException("Invalid OTP.");
+        }
+         if(!dto.getNewPassword().equals(dto.getConfirmNewPassword())){
+             throw new IllegalArgumentException("Password must math with  ConfirmPassword");
+         }
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User Not Found"));
+         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+         userRepo.save(user);
+         redisService.deleteValue(key);
+         return new ApiResponse(true,"Password Changed Successfully please Login ");
+
     }
 }

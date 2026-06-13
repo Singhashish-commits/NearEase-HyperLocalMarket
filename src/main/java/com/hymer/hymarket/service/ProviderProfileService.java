@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,9 +29,12 @@ public class ProviderProfileService {
     private final FileUploadService fileUploadService;
     private final BookingRepo bookingRepo;
     private final ReviewRepository reviewRepo;
+    private final OtpService otpService;
+    private final PasswordEncoder passwordEncoder;
+    private final RedisService redisService;
 
     @Autowired
-    public ProviderProfileService(UserRepository userRepository, ProviderProfileRepository providerRepo, ServiceTypeRepo serviceTypeRepo, ServiceOfferingRepo serviceOfferingRepo, FileUploadService fileUploadService, BookingRepo bookingRepo, ReviewRepository reviewRepo) {
+    public ProviderProfileService(UserRepository userRepository, ProviderProfileRepository providerRepo, ServiceTypeRepo serviceTypeRepo, ServiceOfferingRepo serviceOfferingRepo, FileUploadService fileUploadService, BookingRepo bookingRepo, ReviewRepository reviewRepo, OtpService otpService, PasswordEncoder passwordEncoder, RedisService redisService) {
         this.userRepository = userRepository;
         this.providerRepo = providerRepo;
         this.serviceTypeRepo = serviceTypeRepo;
@@ -38,9 +42,9 @@ public class ProviderProfileService {
         this.fileUploadService = fileUploadService;
         this.bookingRepo = bookingRepo;
         this.reviewRepo = reviewRepo;
-
-
-
+        this.otpService = otpService;
+        this.passwordEncoder = passwordEncoder;
+        this.redisService = redisService;
     }
 
     // apply to be Provider
@@ -209,6 +213,37 @@ public class ProviderProfileService {
     }
 
 
+    @Transactional
+    public ApiResponse requestDeletion(Long serviceOfferingId)  {
+        ProviderProfile profile = getVerifiedProviderProfile();
+        ServiceOffering offering = serviceOfferingRepo.findById(serviceOfferingId)
+                .orElseThrow(()-> new EntityNotFoundException("Service offering not found"));
+        if(!offering.getProviderProfile().getId().equals(profile.getId()) ) {
+            throw new IllegalArgumentException("Not Authorized to delete this ervice ");
+        }
+        otpService.sendServiceDeleteOtp(serviceOfferingId,profile);
+        return new ApiResponse(true, "Email to Delete this service is Sent Successfully");
+    }
+
+    @Transactional
+    public ApiResponse deleteService(Long serviceOfferingId,String otp) {
+        ProviderProfile profile = getVerifiedProviderProfile();
+        String redisKey= serviceOfferingId+"_delete_"+profile.getId();
+        String hashedOtp = redisService.getValue(redisKey);
+        if(hashedOtp==null){
+            throw new EntityNotFoundException("Otp Expired! please try Again in Some Time ");
+        }
+        if(!passwordEncoder.matches(otp,hashedOtp)){
+            throw new RuntimeException("Invalid Otp, Please try Again Later");
+        }
+        ServiceOffering offering = serviceOfferingRepo.findById(serviceOfferingId)
+                .orElseThrow(()-> new EntityNotFoundException("Service Does Not Exist"));
+        serviceOfferingRepo.delete(offering);
+        redisService.deleteValue(redisKey);
+        return new  ApiResponse(true, "Successfully deleted the service.");
+    }
+
+
 
 
     private ProviderProfile getVerifiedProviderProfile() {
@@ -222,5 +257,5 @@ public class ProviderProfileService {
         }
         return profile;
     }
-    
+
 }

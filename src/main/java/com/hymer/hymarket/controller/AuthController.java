@@ -58,4 +58,15 @@ public class AuthController {
             JwtResponse jwtResponse = authService.loginUser(loginRequest);
             return ResponseEntity.ok(jwtResponse);
     }
+
+    @PostMapping("/forget-password")
+    public ResponseEntity<ApiResponse> forgetPassword(@RequestBody OtpRequestDto otpRequestDto){
+        return ResponseEntity.ok(authService.AccountRecoveryMail(otpRequestDto));
+    }
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse> changePassword(@RequestBody ChangePasswordDto dto){
+        return ResponseEntity.ok(authService.changePassword(dto));
+    }
+
+
 }

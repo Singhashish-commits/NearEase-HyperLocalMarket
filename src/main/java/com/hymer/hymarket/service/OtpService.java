@@ -1,6 +1,7 @@
 package com.hymer.hymarket.service;
 
 import com.hymer.hymarket.model.Booking;
+import com.hymer.hymarket.model.ProviderProfile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -71,4 +72,26 @@ public class OtpService {
     }
 
 
+    public void sendServiceDeleteOtp(Long serviceOfferingId, ProviderProfile profile) {
+        String otp =  String.valueOf(100000+secureRandom.nextInt(900000));
+        String hashedOtp = passwordEncoder.encode(otp);
+        String redisKey= serviceOfferingId+"_delete_"+profile.getId();
+        redisService.saveValue(redisKey,hashedOtp,10);
+        String email = profile.getUser().getEmail();
+        mailService.sendMail(email,
+                "NearEase- Your Service Delete Otp", mailTemplateService.buildOtpHtml(otp));
+
+
+    }
+
+    public void sendPasswordResetOtp(String email) {
+        String otp = String.valueOf(100000+secureRandom.nextInt(900000));
+        String hashedOtp = passwordEncoder.encode(otp);
+        redisService.saveValue("reset_otp:" + email, hashedOtp,10);
+        mailService.sendMail(
+                email,
+                "NearEase – Account  Verification Code", mailTemplateService.buildOtpHtml(otp));
+
+
+    }
 }

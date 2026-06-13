@@ -67,6 +67,18 @@ public class ProviderController {
                 return ResponseEntity.ok(providerProfileService.editService(id,serviceRequest,file));
     }
 
+   @PostMapping("/{id}/request-deletion")
+    public ResponseEntity<ApiResponse> deleteRequest(@PathVariable Long id){
+        return ResponseEntity.ok(providerProfileService.requestDeletion(id));
+   }
+
+   @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> deleteService(@PathVariable("id") Long id ,@RequestHeader("X-OTP") String otp){
+        return ResponseEntity.ok(providerProfileService.deleteService(id,otp));
+   }
+
+
+
 
 
 }
