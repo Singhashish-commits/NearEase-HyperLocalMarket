@@ -35,16 +35,16 @@ public class ServiceSpecification {
                 predicates.add(cb.greaterThanOrEqualTo(root.get("rating"), dto.getMinRating()));
             }
 
-            // Searches: description, service type name, category name, provider business name
             if (dto.getSearchKeyword() != null && !dto.getSearchKeyword().isEmpty()) {
                 String keyword = "%" + dto.getSearchKeyword().toLowerCase() + "%";
 
-                Predicate descMatch         = cb.like(cb.lower(root.get("description")),              keyword);
+                Predicate descMatch         = cb.like(cb.lower(root.get("serviceTitle")),              keyword);
                 Predicate typeNameMatch     = cb.like(cb.lower(typeJoin.get("name")),                 keyword);
                 Predicate categoryNameMatch = cb.like(cb.lower(categoryJoin.get("name")),             keyword);
-                Predicate providerNameMatch = cb.like(cb.lower(providerJoin.get("businessName")),     keyword);
+                Predicate providerNameMatch = cb.like(cb.lower(providerJoin.get("city")),     keyword);
 
                 predicates.add(cb.or(descMatch, typeNameMatch, categoryNameMatch, providerNameMatch));
+
             }
 
             if (dto.getUserLat() != null && dto.getUserLng() != null && dto.getRadiusKm() != null) {
@@ -53,26 +53,24 @@ public class ServiceSpecification {
                 double latDelta = dto.getRadiusKm() / 111.0;
                 double lngDelta = dto.getRadiusKm() / (111.0 * Math.cos(Math.toRadians(dto.getUserLat())));
 
-                predicates.add(cb.between(providerJoin.get("latitude"),
-                        dto.getUserLat() - latDelta,
-                        dto.getUserLat() + latDelta));
-                predicates.add(cb.between(providerJoin.get("longitude"),
-                        dto.getUserLng() - lngDelta,
-                        dto.getUserLng() + lngDelta));
+                double minLat = dto.getUserLat() - latDelta;
+                double maxLat = dto.getUserLat() + latDelta;
+                double minLng = dto.getUserLng() - lngDelta;
+                double maxLng = dto.getUserLng() + lngDelta;
 
-                // Step B: exact Haversine circle (removes bounding box corners)
-                Expression<Double> haversine = cb.function(
-                        "haversine_distance",
-                        Double.class,
-                        cb.literal(dto.getUserLat()),
-                        cb.literal(dto.getUserLng()),
-                        providerJoin.get("latitude"),
-                        providerJoin.get("longitude")
-                );
-                predicates.add(cb.lessThanOrEqualTo(haversine, dto.getRadiusKm()));
+
+                predicates.add(cb.between(
+                        providerJoin.<String>get("latitude"),
+                        String.valueOf(minLat),
+                        String.valueOf(maxLat)
+                ));
+                predicates.add(cb.between(
+                        providerJoin.<String>get("longitude"),
+                        String.valueOf(minLng),
+                        String.valueOf(maxLng)
+                ));
+
             }
-
-            predicates.add(cb.equal(root.get("status"), ServiceStatus.ACTIVE));
             if (query != null) {
                 if (dto.getSortBy() != null) {
                     boolean asc = "asc".equalsIgnoreCase(dto.getSortDirn());

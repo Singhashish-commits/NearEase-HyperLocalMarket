@@ -15,5 +15,6 @@ public class ServiceSearchResponseDto {
     private String description;
     private String providerProfileName;
     private String imageUrl;
+    private String serviceTitle;
 
 }

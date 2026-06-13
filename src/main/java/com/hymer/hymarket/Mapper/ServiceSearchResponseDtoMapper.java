@@ -14,6 +14,7 @@ public class ServiceSearchResponseDtoMapper {
         serviceSearchResponseDto.setServiceName(serviceOffering.getServiceType().getName());
         serviceSearchResponseDto.setDescription(serviceOffering.getDescription());
         serviceSearchResponseDto.setPrice(serviceOffering.getPrice());
+        serviceSearchResponseDto.setServiceTitle(serviceOffering.getServiceTitle());
         serviceSearchResponseDto.setCategory(serviceOffering.getServiceType().getCategory().getName());
         serviceSearchResponseDto.setProviderProfileName(serviceOffering.getProviderProfile().getUser().getFirstName());
         serviceSearchResponseDto.setImageUrl(serviceOffering.getImageUrl());

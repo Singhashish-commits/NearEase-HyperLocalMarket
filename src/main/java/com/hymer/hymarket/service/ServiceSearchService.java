@@ -16,17 +16,29 @@ import java.util.stream.Collectors;
 @Service
 public class ServiceSearchService {
     private final ServiceSearchRepository serviceSearchRepository;
+    private final RedisService redisService;
+
     @Autowired
-    public ServiceSearchService(ServiceSearchRepository serviceSearchRepository) {
+    public ServiceSearchService(ServiceSearchRepository serviceSearchRepository, RedisService redisService) {
         this.serviceSearchRepository = serviceSearchRepository;
+        this.redisService = redisService;
     }
 
     public List<ServiceSearchResponseDto> searchService(ServiceSearchRequestDto serviceSearchRequestDto) {
+
+        String cacheKey = redisService.generateSearchKey(serviceSearchRequestDto);
+        List<ServiceSearchResponseDto> cached = redisService.getCachedSearch(cacheKey);
+        if (cached != null) return cached;
+
+
         Specification<ServiceOffering> spec = ServiceSpecification.getSpecs(serviceSearchRequestDto);
         List<ServiceOffering> results = serviceSearchRepository.findAll(spec);
-        return results.stream()
+        List<ServiceSearchResponseDto> response = results.stream()
                 .map(ServiceSearchResponseDtoMapper::mapDto)
                 .collect(Collectors.toList());
+
+        redisService.cacheSearchResults(cacheKey, response);
+        return response;
     }
 
 
