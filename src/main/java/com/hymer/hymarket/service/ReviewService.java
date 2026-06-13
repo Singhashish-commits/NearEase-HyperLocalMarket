@@ -4,13 +4,17 @@ import com.hymer.hymarket.Repository.BookingRepo;
 import com.hymer.hymarket.Repository.ProviderProfileRepository;
 import com.hymer.hymarket.Repository.ReviewRepository;
 import com.hymer.hymarket.Repository.UserRepository;
+import com.hymer.hymarket.dto.ApiResponse;
 import com.hymer.hymarket.dto.ProviderResponseDto;
+import com.hymer.hymarket.dto.ReviewReplyDto;
 import com.hymer.hymarket.dto.ReviewResponseDto;
 import com.hymer.hymarket.model.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,24 +44,19 @@ public class ReviewService {
         User currentUser = userRepository.findByEmail(email)
                 .orElseThrow(()-> new RuntimeException("User not found"));
 
-            //Validate Booking
         Booking booking = bookingRepo.findById(bookingId)
                 .orElseThrow(()-> new RuntimeException("Booking not found"));
 
-        //RULE: Only the customer who booked it can review it
         if(!booking.getCustomer().getId().equals(currentUser.getId())){
             throw new RuntimeException("You are not Authorized to write review");
         }
 
-        //can review only Completed Booking
         if(booking.getBookingStatus()!= BookingStatus.COMPLETED){
             throw new RuntimeException("You can Only review Completed services");
         }
-        // One review Per Booking
         if(reviewRepository.existsByBookingId(bookingId)){
             throw new RuntimeException("Review already exists");
         }
-
         Review review = new Review();
         review.setBooking(booking);
         review.setRating(rating);
@@ -79,8 +78,6 @@ public class ReviewService {
     }
 
 
-    // This is Public Api here everyOne will get the review of the Provider thet want to Book for the Service.
-   //    So there is now Security Check
     public List<ReviewResponseDto> getProviderReviews(Long ProviderId){
         List<Review> reviews = reviewRepository.findByBooking_Provider_Id(ProviderId);
         return reviews.stream().map(ReviewResponseDtoMapper::mapDto).collect(Collectors.toList());
@@ -90,7 +87,6 @@ public class ReviewService {
     public List<ProviderResponseDto> getMyReviews(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(()-> new RuntimeException("User not found"));
-        System.out.println("User Found The The is "+user.getId());
 
         if(user.getProviderProfile()==null){
             throw new RuntimeException("You are not Provider ,Apply to be Provider To See Your Reviews");
@@ -119,6 +115,39 @@ public class ReviewService {
                     }
                         return dto;
                 }).collect(Collectors.toList());
+    }
+
+
+    public ApiResponse replyReview(Long id, ReviewReplyDto dto) {
+        String email  = SecurityContextHolder.getContext()
+                .getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(()-> new RuntimeException("User not found"));
+        if(user.getProviderProfile()==null){
+            throw new IllegalStateException("Provider profile not found");
+        }
+        ProviderProfile providerProfile = user.getProviderProfile();
+        if (providerProfile == null) {
+            throw new IllegalStateException("Provider profile not found");
+        }
+
+
+        Review review = reviewRepository.findById(id).orElseThrow(()-> new RuntimeException("Review not found"));
+        Booking booking = review.getBooking();
+        if(booking.getBookingStatus()!= BookingStatus.COMPLETED){
+            throw new RuntimeException("You can Only review Completed services");
+        }
+        if(!booking.getProvider().getId().equals(providerProfile.getId())){
+            throw new IllegalStateException("You are not Authorized to Reply to this  review");
+        }
+        review.setProviderReply(dto.getReply());
+        review.setRepliedAt(LocalDateTime.now());
+        reviewRepository.save(review);
+
+        return new ApiResponse(true, "Reply added successfully");
+
+
+
 
 
     }

@@ -1,8 +1,7 @@
 package com.hymer.hymarket.controller;
 
-import com.hymer.hymarket.dto.ProviderResponseDto;
-import com.hymer.hymarket.dto.ReviewRequestDto;
-import com.hymer.hymarket.dto.ReviewResponseDto;
+import com.cloudinary.Api;
+import com.hymer.hymarket.dto.*;
 import com.hymer.hymarket.service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +42,15 @@ public class ReviewController {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(reviewService.getMyReviews(email));
    }
+
+   @PostMapping("/reply-review/{id}")
+    public ResponseEntity<ApiResponse> ReplyReview(@PathVariable Long id, @RequestBody ReviewReplyDto reviewReplyDto){
+        return ResponseEntity.ok(reviewService.replyReview(id,reviewReplyDto));
+
+
+   }
+
+
 
 
 

@@ -12,12 +12,15 @@ public class ReviewResponseDtoMapper {
         reviewResponseDto.setId(review.getId());
         reviewResponseDto.setCreatedAt(review.getCreatedAt());
         reviewResponseDto.setRating(review.getRating());
+        reviewResponseDto.setProviderReply(review.getProviderReply());
+        reviewResponseDto.setRepliedAt(review.getRepliedAt());
         reviewResponseDto.setComment(review.getComment());
         if(review.getBooking().getCustomer().getFirstName() != null){
             reviewResponseDto.setCustomerName(review.getBooking().getCustomer().getFirstName());
         }else{
             reviewResponseDto.setCustomerName("Anonymous");
         }
+
         return reviewResponseDto;
 
     }
