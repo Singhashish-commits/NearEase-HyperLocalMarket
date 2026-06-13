@@ -11,4 +11,5 @@ public class ServiceOfferingResponse {
     private String serviceTypename;
     private ProviderProfileDto provider;
     private String imageUrl;
+    private String ServiceTitle;
 }

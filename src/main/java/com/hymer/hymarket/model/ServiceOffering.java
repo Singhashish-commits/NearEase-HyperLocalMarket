@@ -19,6 +19,7 @@ public class ServiceOffering {
     @ManyToOne
     @JoinColumn(name = "service_type_id", nullable = false)
     private ServiceType serviceType;
+    private String serviceTitle;
     private double price;
     private String description;
     private String imageUrl; // for the image url to be stored

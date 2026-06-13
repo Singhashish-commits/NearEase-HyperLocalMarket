@@ -15,6 +15,8 @@ public class ServiceOfferingMapper {
         serviceOfferingResponse.setPrice(serviceOffering.getPrice());
         serviceOfferingResponse.setDescription(serviceOffering.getDescription());
         serviceOfferingResponse.setImageUrl(serviceOffering.getImageUrl());
+        serviceOfferingResponse.setServiceTypename(serviceOffering.getServiceType().getName());
+        serviceOfferingResponse.setServiceTitle(serviceOffering.getServiceTitle());
         return serviceOfferingResponse;
     }
 

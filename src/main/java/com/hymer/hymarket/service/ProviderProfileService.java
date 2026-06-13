@@ -98,6 +98,8 @@ public class ProviderProfileService {
                 .orElseThrow(()-> new RuntimeException("Service Type not find with ID "+serviceRequest.getServiceTypeId()));
 
          ServiceOffering serviceOffering = new ServiceOffering();
+         serviceOffering.setServiceType(serviceType);
+         serviceOffering.setServiceTitle(serviceRequest.getServiceTitle());
          serviceOffering.setProviderProfile(providerProfile);
          serviceOffering.setServiceType(serviceType);
          if(serviceRequest.getPrice()<=0.0){

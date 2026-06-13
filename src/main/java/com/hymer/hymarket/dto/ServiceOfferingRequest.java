@@ -10,6 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ServiceOfferingRequest {
+    private String ServiceTitle;
     private long serviceTypeId;
     private double price;
     private String description;
