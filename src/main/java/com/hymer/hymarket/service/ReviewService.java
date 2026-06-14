@@ -100,6 +100,8 @@ public class ReviewService {
                     dto.setId(review.getId());
                     dto.setRating(review.getRating());
                     dto.setComment(review.getComment());
+                    dto.setProviderReply(review.getProviderReply());
+                    dto.setRepliedAt(review.getRepliedAt());
 
                     Booking booking = review.getBooking();
                     dto.setBookingId(booking.getId());
