@@ -197,6 +197,9 @@ public class ProviderProfileService {
        }
        exist.setDescription(serviceRequest.getDescription());
        exist.setPrice(serviceRequest.getPrice());
+      if(serviceRequest.getServiceTitle()!=null && !serviceRequest.getServiceTitle().trim().isEmpty()){
+          exist.setServiceTitle(serviceRequest.getServiceTitle());
+      }
 
         if(!exist.getServiceType().getId().equals(serviceRequest.getServiceTypeId())){
             ServiceType newType = serviceTypeRepo.findById(serviceRequest.getServiceTypeId())

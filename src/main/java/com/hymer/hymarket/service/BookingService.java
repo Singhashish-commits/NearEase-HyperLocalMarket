@@ -74,6 +74,7 @@ public class BookingService{
         booking.setCustomerRequest(bookingRequestDto.getCustomerRequest());
         booking.setScheduleTime(bookingRequestDto.getScheduleTime());
         booking.setWorkLocation(bookingRequestDto.getWorkLocation());
+        booking.setPrice(offering.getPrice());
         Booking savedBooking = bookingRepo.save(booking);
         if (savedBooking.getCustomer() == null ||
                 savedBooking.getServiceOffering() == null ||

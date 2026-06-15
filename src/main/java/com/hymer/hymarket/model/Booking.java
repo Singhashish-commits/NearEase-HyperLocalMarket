@@ -31,6 +31,7 @@ public class Booking {
     @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus;
     private LocalDateTime bookingTime;
+    private Double price;
     private String beforeImages;
     private String afterImages;
     private String TransectionId;
