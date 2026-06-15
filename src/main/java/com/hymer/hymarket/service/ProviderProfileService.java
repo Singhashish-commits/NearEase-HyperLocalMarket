@@ -111,7 +111,10 @@ public class ProviderProfileService {
              return ResponseEntity.badRequest().body(new ApiResponse(false,"Description is required"));
          }
          serviceOffering.setDescription(description.trim());
-           fileUploadService.uploadFile(file);
+         if ( file!= null && !file.isEmpty()){
+             String imgUrl=  fileUploadService.uploadFile(file);
+             serviceOffering.setImageUrl(imgUrl);
+         }
          serviceOfferingRepo.save(serviceOffering);
          return ResponseEntity.ok(new ApiResponse(true, "Service Added Successfully"));
     }
