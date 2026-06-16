@@ -15,10 +15,10 @@ public class ReviewResponseDtoMapper {
         reviewResponseDto.setProviderReply(review.getProviderReply());
         reviewResponseDto.setRepliedAt(review.getRepliedAt());
         reviewResponseDto.setComment(review.getComment());
-        if(review.getBooking().getCustomer().getFirstName() != null){
+        if(review.getBooking() != null && review.getBooking().getCustomer() != null && review.getBooking().getCustomer().getFirstName() != null){
             reviewResponseDto.setCustomerName(review.getBooking().getCustomer().getFirstName());
         }else{
-            reviewResponseDto.setCustomerName("Anonymous");
+            reviewResponseDto.setCustomerName("Verified Customer");
         }
 
         return reviewResponseDto;
