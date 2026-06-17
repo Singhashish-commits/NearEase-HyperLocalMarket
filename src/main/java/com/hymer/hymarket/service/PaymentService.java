@@ -8,15 +8,13 @@ import com.hymer.hymarket.model.Booking;
 import com.hymer.hymarket.model.BookingStatus;
 import com.hymer.hymarket.model.PaymentStatus;
 import com.hymer.hymarket.model.PaymentTransection;
-import com.razorpay.Order;
-import com.razorpay.RazorpayClient;
-import com.razorpay.RazorpayException;
-import com.razorpay.Utils;
+import com.razorpay.*;
 import jakarta.annotation.PostConstruct;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,7 +79,7 @@ public class PaymentService {
             }
         }
 
-        double actualPrice = booking.getServiceOffering().getPrice();
+        double actualPrice = booking.getPrice();
         int finalPrice = (int) Math.round(actualPrice * 100);
 
         JSONObject paymentRequest = new JSONObject();
@@ -111,6 +109,9 @@ public class PaymentService {
         response.setCustomerName(booking.getCustomer().getFirstName() + " " + booking.getCustomer().getLastName());
         response.setCustomerEmail(booking.getCustomer().getEmail());
         response.setCustomerPhone(booking.getCustomer().getPhoneNumber());
+        response.setRazorPayKey(razorPayKey);
+        response.setBookingId(bookingId);
+        response.setDescription(booking.getServiceOffering().getDescription());
 
         return response;
     }
@@ -125,8 +126,8 @@ public class PaymentService {
                     "Cannot process refund: payment status is " + booking.getPaymentStatus()
                             + ". Expected PAID_TO_PLATFORM.");
         }
-        double actualPrice = booking.getServiceOffering().getPrice();
-        double platformFee = booking.getCancellationFee();
+        double actualPrice = booking.getPrice();
+        double platformFee = booking.getPlatformCommission();
         double refundAmount = actualPrice - platformFee;
         PaymentTransection refundTxn = new PaymentTransection();
         refundTxn.setBooking(booking);
@@ -148,13 +149,16 @@ public class PaymentService {
 
     @Transactional
     public void providerPayout(Long bookingId) throws Exception{
-        Booking booking = bookingRepo.findById(bookingId).orElseThrow(()->new RuntimeException("Booking not found"));
-        if(booking.getPaymentStatus()!= PaymentStatus.PAID_TO_PLATFORM){
-            throw new RuntimeException("can't process Payout : funds are not in escrow");
 
+        Booking booking = bookingRepo.findById(bookingId).orElseThrow(()->new RuntimeException("Booking not found"));
+        if (booking.getBookingStatus() != BookingStatus.COMPLETED) {
+            throw new RuntimeException("Cannot release payout: booking is not marked completed yet.");
         }
-        double actualPrice = booking.getServiceOffering().getPrice();
-        double platformFee = booking.getCancellationFee();
+        if (booking.getPaymentStatus() != PaymentStatus.PAID_TO_PLATFORM) {
+            throw new RuntimeException("Can't process payout: funds are not in escrow.");
+        }
+        double actualPrice = booking.getPrice();
+        double platformFee = booking.getPlatformCommission();
         double payableAmount = actualPrice - platformFee;
         PaymentTransection paymentTxn = new PaymentTransection();
         paymentTxn.setBooking(booking);
@@ -206,13 +210,17 @@ public class PaymentService {
         if (isSignatureValid) {
             transaction.setRazorPayPaymentId(verificationDto.getRazorpayPaymentId());
             transaction.setRazorPaySignature(verificationDto.getRazorpaySignature());
-            transaction.setPaymentStatus(PaymentStatus.PAID); // Update status to Paid
+            transaction.setPaymentStatus(PaymentStatus.PAID_TO_PLATFORM); // Update status to Paid
             transaction.setStatus("SUCCESS");
-
+            Payment payment = razorpayClient.payments.fetch(verificationDto.getRazorpayPaymentId());
+            String method = payment.get("method");
+            transaction.setPaymentMethod(method);
+            
             paymentRepository.save(transaction);
 
             Booking booking = transaction.getBooking();
-            booking.setBookingStatus(BookingStatus.CONFIRMED); // or COMPLETED depending on your logic
+            booking.setPaymentStatus(PaymentStatus.PAID_TO_PLATFORM);
+//            booking.setBookingStatus(BookingStatus.CONFIRMED); // or COMPLETED depending on your logic
             bookingRepo.save(booking);
 
             return true;

@@ -8,6 +8,7 @@ import com.hymer.hymarket.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,17 +25,6 @@ public class PaymentController {
            PaymentResponseDto responseDto= paymentService.createOrder(bookingId);
             return ResponseEntity.ok(responseDto);
         }
-      @PostMapping("/refund/{bookingId}")
-    public ResponseEntity<ApiResponse> refund(@PathVariable("bookingId") Long bookingId) throws Exception {
-            paymentService.processRefund(bookingId);
-            return new ResponseEntity<>(new ApiResponse(true,"Refund successful!"), HttpStatus.OK);
-      }
-
-      @PostMapping("payout/{bookingId}")
-    public ResponseEntity<ApiResponse> providerPayout(@PathVariable("bookingId") Long bookingId) throws Exception {
-        paymentService.providerPayout(bookingId);
-        return new ResponseEntity<>(new ApiResponse(true,"Payout successful!"), HttpStatus.OK);
-      }
 
 
     @PostMapping("/mock-success/{bookingId}")

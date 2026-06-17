@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class BookingService{
+    private static final double PLATFORM_COMMISSION_RATE = 0.10;
     private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
     private final  BookingRepo bookingRepo;
     private final  ServiceOfferingRepo serviceOfferingRepo;
@@ -156,6 +157,9 @@ public class BookingService{
         }
 
         booking.setBookingStatus(newStatus);
+        if(newStatus == BookingStatus.CONFIRMED){
+            booking.setPlatformCommission(booking.getPrice()*PLATFORM_COMMISSION_RATE);
+        }
         Booking updatedBooking = bookingRepo.save(booking);
         notificationManager.triggerNotification(booking,newStatus);
         return BookingResponseDtoMapper.mapDto(updatedBooking);

@@ -2,6 +2,7 @@ package com.hymer.hymarket.Repository;
 
 import com.hymer.hymarket.model.Booking;
 import com.hymer.hymarket.model.BookingStatus;
+import com.hymer.hymarket.model.PaymentStatus;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,12 +14,9 @@ public interface BookingRepo extends JpaRepository<Booking, Long> {
    List<Booking> findByProviderId(long providerId);
    List<Booking> findByServiceOfferingProviderProfileIdAndBookingStatus(Long providerId, BookingStatus status);
 
-    @Query("""
-    SELECT SUM(b.price) FROM Booking b WHERE b.provider.id = :providerId
-            AND b.bookingStatus = :bookingStatus""")
-    Double calculateTotalEarning(
-            @Param("providerId") Long providerId,
-            @Param("bookingStatus") BookingStatus bookingStatus);
+    @Query("SELECT SUM(b.price) FROM Booking b" +
+            " WHERE b.provider.id = :providerId AND b.paymentStatus = :paymentStatus")
+    Double calculateTotalEarning(@Param("providerId") Long providerId, @Param("paymentStatus") PaymentStatus paymentStatus);
 
 
     long countByServiceOfferingProviderProfileIdAndBookingStatus(long providerId, BookingStatus bookingStatus);

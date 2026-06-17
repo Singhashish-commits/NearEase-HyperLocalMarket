@@ -5,8 +5,10 @@ import com.hymer.hymarket.dto.ProviderPortfolioDto;
 import com.hymer.hymarket.dto.ProviderProfileDto;
 import com.hymer.hymarket.service.AdminService;
 import com.hymer.hymarket.service.BookingService;
+import com.hymer.hymarket.service.PaymentService;
 import com.hymer.hymarket.service.ProviderProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,12 +22,14 @@ public class AdminController {
     private final   AdminService adminService;
     private  final ProviderProfileService providerProfileService;
     private final BookingService bookingService;
+    private final PaymentService paymentService;
 
     @Autowired
-    public AdminController(AdminService adminService, ProviderProfileService providerProfileService, BookingService bookingService){
+    public AdminController(AdminService adminService, ProviderProfileService providerProfileService, BookingService bookingService, PaymentService paymentService) {
         this.adminService = adminService;
         this.providerProfileService = providerProfileService;
         this.bookingService = bookingService;
+        this.paymentService = paymentService;
     }
     @PostMapping("/provider/approve/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -40,10 +44,23 @@ public class AdminController {
     }
 
     @GetMapping("/all/bookings")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<BookingResponseDto>> getAllBookings(){
         return ResponseEntity.ok(bookingService.findAllBookings());
     }
+    @PostMapping("/payout/{bookingId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse> providerPayout(@PathVariable("bookingId") Long bookingId) throws Exception {
+        paymentService.providerPayout(bookingId);
+        return new ResponseEntity<>(new ApiResponse(true,"Payout successful!"), HttpStatus.OK);
+    }
 
+    @PostMapping("/refund/{bookingId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse> refund(@PathVariable("bookingId") Long bookingId) throws Exception {
+        paymentService.processRefund(bookingId);
+        return new ResponseEntity<>(new ApiResponse(true,"Refund successful!"), HttpStatus.OK);
+    }
 
 
 

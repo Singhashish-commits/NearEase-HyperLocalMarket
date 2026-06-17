@@ -10,4 +10,8 @@ public class PaymentResponseDto {
     private String customerName;
     private String customerEmail;
     private String customerPhone;
+    private String razorPayKey;
+    private Long bookingId;
+    private String description;
+
 }

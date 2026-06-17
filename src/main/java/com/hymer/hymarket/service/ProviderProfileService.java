@@ -156,7 +156,7 @@ public class ProviderProfileService {
          long providerId = provider.getId();
          long completedJobs = bookingRepo.countByServiceOfferingProviderProfileIdAndBookingStatus(providerId, BookingStatus.COMPLETED);
          long pendingRequest = bookingRepo.countByServiceOfferingProviderProfileIdAndBookingStatus(providerId, BookingStatus.PENDING);
-         Double earnings = bookingRepo.calculateTotalEarning(providerId, BookingStatus.COMPLETED);
+         Double earnings = bookingRepo.calculateTotalEarning(providerId, PaymentStatus.TRANSFER_TO_PROVIDER);
          Double finalEarning = (earnings!=null)? earnings:0;
         Double averageRating = providerRepo.findAverageRatingById(providerId);
 

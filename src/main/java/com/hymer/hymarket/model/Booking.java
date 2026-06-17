@@ -15,13 +15,9 @@ public class Booking {
     @ManyToOne
     @JoinColumn(name="customer_id",nullable = false) // who is booking
     private User customer;
-
-
-
     @ManyToOne
     @JoinColumn(name = "service_offering_id", nullable = false) // what are Booking
     private ServiceOffering serviceOffering;
-
     @ManyToOne
     @JoinColumn(name="provider-id") // who is providing
     private ProviderProfile provider;
@@ -37,6 +33,7 @@ public class Booking {
     private String TransectionId;
     private Double cancellationFee=0.0;
     private PaymentStatus paymentStatus;
+    private Double platformCommission = 0.0;
     @PrePersist
     private void onCreate(){
         this.bookingTime = LocalDateTime.now();
