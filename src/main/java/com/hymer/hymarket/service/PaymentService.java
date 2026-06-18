@@ -10,15 +10,14 @@ import com.hymer.hymarket.model.PaymentStatus;
 import com.hymer.hymarket.model.PaymentTransection;
 import com.razorpay.*;
 import jakarta.annotation.PostConstruct;
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -55,11 +54,14 @@ public class PaymentService {
             throw new RuntimeException("Unauthorized to pay for this booking");
         }
 
-        if (booking.getBookingStatus() != BookingStatus.CONFIRMED) {
+        if (booking.getBookingStatus() != BookingStatus.CONFIRMED
+                && booking.getBookingStatus() != BookingStatus.COMPLETED) {
             throw new RuntimeException("Booking is not confirmed yet. Payment can be done only after the order is confirmed.");
         }
 
-        Optional<PaymentTransection> existingTxnOpt = paymentRepository.findByBookingId(bookingId);
+//        Optional<PaymentTransection> existingTxnOpt = paymentRepository.findByBookingId(bookingId);
+        Optional<PaymentTransection> existingTxnOpt = paymentRepository.findFirstByBookingIdAndPaymentStatusIn(
+                bookingId, List.of(PaymentStatus.UNPAID, PaymentStatus.PAID_TO_PLATFORM, PaymentStatus.FAILED));
 
         if (existingTxnOpt.isPresent()) {
             PaymentTransection existingTxn = existingTxnOpt.get();
@@ -74,7 +76,10 @@ public class PaymentService {
                 response.setCustomerPhone(booking.getCustomer().getPhoneNumber());
 
                 return response;
-            } else {
+            }else if (existingTxn.getPaymentStatus() == PaymentStatus.FAILED) {
+                // fall through and create a fresh order below
+            }
+            else {
                 throw new RuntimeException("Payment has already been processed or initiated for this booking.");
             }
         }
@@ -125,6 +130,10 @@ public class PaymentService {
             throw new RuntimeException(
                     "Cannot process refund: payment status is " + booking.getPaymentStatus()
                             + ". Expected PAID_TO_PLATFORM.");
+        }
+        if (booking.getBookingStatus() != BookingStatus.CANCELLED
+                && booking.getBookingStatus() != BookingStatus.CANCELLED_BY_PROVIDER) {
+            throw new RuntimeException("Refund is only applicable for cancelled bookings. Current status: " + booking.getBookingStatus());
         }
         double actualPrice = booking.getPrice();
         double platformFee = booking.getPlatformCommission();
@@ -181,8 +190,11 @@ public class PaymentService {
             throw new RuntimeException(
                     "Booking payment already processed");
         }
-        PaymentTransection transaction = paymentRepository.findByBooking(booking)
-                        .orElseThrow(() -> new RuntimeException("Transaction not found"));
+//        PaymentTransection transaction = paymentRepository.findByBooking(booking)
+//                        .orElseThrow(() -> new RuntimeException("Transaction not found"));
+        PaymentTransection transaction = paymentRepository.findFirstByBookingAndPaymentStatusIn(
+                        booking, List.of(PaymentStatus.UNPAID))
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
         transaction.setStatus("SUCCESS");
         transaction.setPaymentStatus(
                 PaymentStatus.PAID_TO_PLATFORM);
@@ -196,7 +208,11 @@ public class PaymentService {
 
     public boolean verifyAndCompletePayment(PaymentVerificationDto verificationDto) throws Exception {
 
-        PaymentTransection transaction = paymentRepository.findByBookingId(verificationDto.getBookingId())
+//        PaymentTransection transaction = paymentRepository.findByBookingId(verificationDto.getBookingId())
+//                .orElseThrow(() -> new RuntimeException("Transaction not found for this booking"));
+
+        PaymentTransection transaction = paymentRepository.findFirstByBookingIdAndPaymentStatusIn(
+                        verificationDto.getBookingId(), List.of(PaymentStatus.UNPAID))
                 .orElseThrow(() -> new RuntimeException("Transaction not found for this booking"));
 
         JSONObject options = new JSONObject();

@@ -40,6 +40,9 @@ public class Booking {
         if(this.bookingStatus == null){
             this.bookingStatus = BookingStatus.PENDING;
         }
+        if(this.paymentStatus == null){
+            this.paymentStatus = PaymentStatus.UNPAID;
+        }
 
     }
 }

@@ -17,7 +17,7 @@ public class PaymentTransection {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name ="bookingId",nullable = false)
     private Booking booking;
 
