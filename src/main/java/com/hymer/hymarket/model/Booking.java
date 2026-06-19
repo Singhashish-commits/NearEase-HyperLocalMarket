@@ -32,6 +32,8 @@ public class Booking {
     private String afterImages;
     private String TransectionId;
     private Double cancellationFee=0.0;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status")
     private PaymentStatus paymentStatus;
     private Double platformCommission = 0.0;
     @PrePersist
