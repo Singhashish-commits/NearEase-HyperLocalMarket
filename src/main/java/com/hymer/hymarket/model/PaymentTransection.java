@@ -28,6 +28,8 @@ public class PaymentTransection {
     private String currency="INR";
     private String paymentMethod;
     private String status;
+    @Enumerated(EnumType.STRING) // <-- Add this line!
+    @Column(name = "payment_status")
     private PaymentStatus paymentStatus;
     @CreationTimestamp
     @Column( updatable = false)
