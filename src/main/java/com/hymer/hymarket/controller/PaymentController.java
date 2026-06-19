@@ -44,20 +44,21 @@ public class PaymentController {
     }
 
     @PostMapping("/verify-payment")
-    public ResponseEntity<?> verifyPayment(@RequestBody PaymentVerificationDto verificationDto) {
+    public ResponseEntity<ApiResponse> verifyPayment(@RequestBody PaymentVerificationDto verificationDto) {
         try {
             boolean isSuccess = paymentService.verifyAndCompletePayment(verificationDto);
             if (isSuccess) {
-                return ResponseEntity.ok("Payment verified and booking finalized successfully.");
+                return ResponseEntity.ok(new ApiResponse(true, "Payment verified and booking finalized successfully."));
             } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment verification failed.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponse(false, "Payment verification failed."));
             }
         } catch (RuntimeException e) {
             // Catches invalid signature errors
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse(false, e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error while verifying payment: " + e.getMessage());
+                    .body(new ApiResponse(false,  "error Verifying payment "+e.getMessage()));
         }
     }
 
