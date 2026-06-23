@@ -1,6 +1,7 @@
 package com.hymer.hymarket.dto;
 
 import com.hymer.hymarket.model.BookingStatus;
+import com.hymer.hymarket.model.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,7 @@ public class BookingResponseDto {
     private LocalDateTime bookingTime;
     private String workLocation;
     private String CostumerRequest;
+    private PaymentStatus paymentStatus;
     private String ServiceName;
     private double price;
     private UserProfileDto customer;

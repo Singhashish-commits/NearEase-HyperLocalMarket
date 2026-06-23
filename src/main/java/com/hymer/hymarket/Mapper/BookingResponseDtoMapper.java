@@ -25,6 +25,7 @@ public class BookingResponseDtoMapper {
         bookingResponseDto.setWorkLocation(booking.getWorkLocation());
         bookingResponseDto.setScheduledTime(booking.getScheduleTime());
         bookingResponseDto.setCancellationFee(booking.getCancellationFee());
+        bookingResponseDto.setPaymentStatus(booking.getPaymentStatus());
 
 
         if (booking.getServiceOffering() != null) {
