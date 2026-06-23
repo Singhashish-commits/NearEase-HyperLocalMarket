@@ -6,7 +6,7 @@ import lombok.Data;
 
 public class ServiceOfferingResponse {
     private Long id;
-    private double price;
+    private Double price;
     private String description;
     private String serviceTypename;
     private ProviderProfileDto provider;

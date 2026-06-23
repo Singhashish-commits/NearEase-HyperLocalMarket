@@ -9,7 +9,7 @@ public class ProviderProfileDto {
     private String skill;
     private String experience;
     private String address;
-    private boolean verified;
+    private Boolean verified;
     private UserProfileDto user;
 
 

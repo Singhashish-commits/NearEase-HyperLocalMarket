@@ -21,11 +21,11 @@ public class BookingResponseDto {
     private String CostumerRequest;
     private PaymentStatus paymentStatus;
     private String ServiceName;
-    private double price;
+    private Double price;
     private UserProfileDto customer;
     private ProviderProfileDto provider;
     private String beforeImages;
     private String afterImages;
-    private double cancellationFee;
+    private Double cancellationFee;
 
 }

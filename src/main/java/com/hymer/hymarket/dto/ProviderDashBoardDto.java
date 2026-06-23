@@ -13,9 +13,9 @@ public class ProviderDashBoardDto {
     private String PhoneNo;
     // Matrices
     private Double totalEarning;
-    private long completedJobs;
-    private long pendingRequest;
-    private double averageRating;
+    private Long completedJobs;
+    private Long pendingRequest;
+    private Double averageRating;
     //Inventory of what they provide;
     private List<ServiceOfferingResponse> activeServices;
 

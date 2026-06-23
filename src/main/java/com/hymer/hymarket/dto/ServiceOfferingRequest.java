@@ -11,8 +11,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ServiceOfferingRequest {
     private String ServiceTitle;
-    private long serviceTypeId;
-    private double price;
+    private Long serviceTypeId;
+    private Double price;
     private String description;
 
 }

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class ReviewResponseDto {
-    private long id;
+    private Long id;
     private Integer rating;
     @Size(max = 1000, message = "Reply cannot exceed 1000 characters")
     private String comment;

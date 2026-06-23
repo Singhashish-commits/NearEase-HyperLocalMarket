@@ -16,6 +16,6 @@ public class ProviderProfileRequest {
     private String city;
     private String state;
     private Long pinCode;
-    private  String latitude;
+    private String latitude;
     private String  longitude;
 }
