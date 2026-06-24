@@ -39,7 +39,6 @@ public class HyMarketApplication {
             if (roleRepository.findByName("ROLE_ADMIN").isEmpty()) {
                 roleRepository.save(new Roles("ROLE_ADMIN"));
             }
-            System.out.println("--- DEFAULT ROLES CREATED ---");
         };
 
 
@@ -68,7 +67,6 @@ public class HyMarketApplication {
                 typeRepo.save(new ServiceType("5-Star Hotels", lux));
                 typeRepo.save(new ServiceType("Premium Car Rentals", lux));
 
-                System.out.println("--- HIERARCHY CREATED SUCCESSFULLY ---");
             }
         };
     }
@@ -105,7 +103,6 @@ public class HyMarketApplication {
                 admin.setRoles(roles);
 
                 userRepository.save(admin);
-                System.out.println("--- ADMIN USER CREATED: admin123@gmail.com / admin@123 ---");
             }
         };
     }

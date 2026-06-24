@@ -135,7 +135,7 @@ public class PaymentService {
                 && booking.getBookingStatus() != BookingStatus.CANCELLED_BY_PROVIDER) {
             throw new RuntimeException("Refund is only applicable for cancelled bookings. Current status: " + booking.getBookingStatus());
         }
-        double actualPrice = booking.getPrice();
+        double actualPrice = booking.getPrice()!=null?booking.getPrice():0;
         double platformFee = booking.getPlatformCommission();
         double refundAmount = actualPrice - platformFee;
         PaymentTransection refundTxn = new PaymentTransection();

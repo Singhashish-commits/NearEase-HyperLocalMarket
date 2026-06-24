@@ -49,6 +49,20 @@ public class AdminController {
         return ResponseEntity.ok(bookingService.findAllBookings());
     }
 
+    @PostMapping("/payout/{bookingId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse> providerPayout(@PathVariable("bookingId") Long bookingId) throws Exception {
+        paymentService.providerPayout(bookingId);
+        return new ResponseEntity<>(new ApiResponse(true,"Payout successful!"), HttpStatus.OK);
+    }
+
+    @PostMapping("/refund/{bookingId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse> refund(@PathVariable("bookingId") Long bookingId) throws Exception {
+        paymentService.processRefund(bookingId);
+        return new ResponseEntity<>(new ApiResponse(true,"Refund successful!"), HttpStatus.OK);
+    }
+
 
 
 
