@@ -214,8 +214,9 @@ public class BookingService{
         if(!booking.getCustomer().getEmail().equals(email)){
             throw new RuntimeException("Unauthorized: Only the Authorized Customer  can cancel this booking.");
         }
-        if(booking.getBookingStatus().equals(BookingStatus.CONFIRMED) ||
-                booking.getBookingStatus().equals(BookingStatus.CANCELLED)){
+        if(booking.getBookingStatus().equals(BookingStatus.COMPLETED) ||
+                booking.getBookingStatus().equals(BookingStatus.CANCELLED) || booking.getBookingStatus().equals(BookingStatus.CANCELLED_BY_PROVIDER)
+                ||booking.getBookingStatus().equals(BookingStatus.REJECTED)){
             throw new RuntimeException("Can't cancel the Booking which is already "+booking.getBookingStatus());
         }
         double estimateFee = calculateCancellationFee(booking);
