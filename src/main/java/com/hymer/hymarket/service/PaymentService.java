@@ -2,6 +2,7 @@ package com.hymer.hymarket.service;
 
 import com.hymer.hymarket.Repository.BookingRepo;
 import com.hymer.hymarket.Repository.PaymentRepository;
+import com.hymer.hymarket.dto.ApiResponse;
 import com.hymer.hymarket.dto.PaymentResponseDto;
 import com.hymer.hymarket.dto.PaymentVerificationDto;
 import com.hymer.hymarket.model.Booking;
@@ -59,7 +60,6 @@ public class PaymentService {
             throw new RuntimeException("Booking is not confirmed yet. Payment can be done only after the order is confirmed.");
         }
 
-//        Optional<PaymentTransection> existingTxnOpt = paymentRepository.findByBookingId(bookingId);
         Optional<PaymentTransection> existingTxnOpt = paymentRepository.findFirstByBookingIdAndPaymentStatusIn(
                 bookingId, List.of(PaymentStatus.UNPAID, PaymentStatus.PAID_TO_PLATFORM, PaymentStatus.FAILED));
 
@@ -77,7 +77,7 @@ public class PaymentService {
 
                 return response;
             }else if (existingTxn.getPaymentStatus() == PaymentStatus.FAILED) {
-                // fall through and create a fresh order below
+
             }
             else {
                 throw new RuntimeException("Payment has already been processed or initiated for this booking.");
@@ -123,7 +123,7 @@ public class PaymentService {
 
 
     @Transactional
-    public void processRefund(Long bookingId) throws Exception{
+    public ApiResponse processRefund(Long bookingId) throws Exception{
        Booking booking= bookingRepo.findById(bookingId).orElseThrow(()->new RuntimeException("Booking not found"));
 
         if(booking.getPaymentStatus()!= PaymentStatus.PAID_TO_PLATFORM){
@@ -152,12 +152,13 @@ public class PaymentService {
         paymentRepository.save(refundTxn);
         booking.setPaymentStatus(PaymentStatus.REFUNDED);
         bookingRepo.save(booking);
+        return new ApiResponse(true, "Refund Initiated will be visible in 24 Hours !!");
 
 
     }
 
     @Transactional
-    public void providerPayout(Long bookingId) throws Exception{
+    public ApiResponse providerPayout(Long bookingId) throws Exception{
 
         Booking booking = bookingRepo.findById(bookingId).orElseThrow(()->new RuntimeException("Booking not found"));
         if (booking.getBookingStatus() != BookingStatus.COMPLETED) {
@@ -175,10 +176,10 @@ public class PaymentService {
         paymentTxn.setCurrency("INR");
         paymentTxn.setPaymentStatus(PaymentStatus.TRANSFER_TO_PROVIDER);
         paymentTxn.setStatus("MOCK_TRANSFER_SUCCESS");
-
         paymentRepository.save(paymentTxn);
         booking.setPaymentStatus(PaymentStatus.TRANSFER_TO_PROVIDER);
         bookingRepo.save(booking);
+        return  new ApiResponse(true,"Payout successful!");
     }
 
     @Transactional
