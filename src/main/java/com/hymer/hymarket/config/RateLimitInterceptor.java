@@ -1,5 +1,6 @@
 package com.hymer.hymarket.config;
 
+import com.hymer.hymarket.exception.GlobalExceptionHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.redisson.api.RRateLimiter;
@@ -46,6 +47,7 @@ public class RateLimitInterceptor  implements HandlerInterceptor {
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Too many requests. Please try again later.\"}");
             return false;
+//            throw new GlobalExceptionHandler.RateLimitExceededException();
         }
         return true;
 
