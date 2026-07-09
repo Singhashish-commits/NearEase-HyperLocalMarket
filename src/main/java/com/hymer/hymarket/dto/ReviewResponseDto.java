@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 public class ReviewResponseDto {
     private Long id;
     private Integer rating;
+    private String serviceTitle;
     @Size(max = 1000, message = "Reply cannot exceed 1000 characters")
     private String comment;
     private String CustomerName;

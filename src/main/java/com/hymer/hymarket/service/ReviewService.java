@@ -4,10 +4,7 @@ import com.hymer.hymarket.Repository.BookingRepo;
 import com.hymer.hymarket.Repository.ProviderProfileRepository;
 import com.hymer.hymarket.Repository.ReviewRepository;
 import com.hymer.hymarket.Repository.UserRepository;
-import com.hymer.hymarket.dto.ApiResponse;
-import com.hymer.hymarket.dto.ProviderResponseDto;
-import com.hymer.hymarket.dto.ReviewReplyDto;
-import com.hymer.hymarket.dto.ReviewResponseDto;
+import com.hymer.hymarket.dto.*;
 import com.hymer.hymarket.model.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,14 +34,14 @@ public class ReviewService {
     }
 
     @Transactional
-    public Review writeReview(Long bookingId,Integer rating, String comment){
+    public Review writeReview(ReviewRequestDto dto){
         // Validate User before Proceeding
         String email = SecurityContextHolder.getContext()
                 .getAuthentication().getName();
         User currentUser = userRepository.findByEmail(email)
                 .orElseThrow(()-> new RuntimeException("User not found"));
 
-        Booking booking = bookingRepo.findById(bookingId)
+        Booking booking = bookingRepo.findById(dto.getBookingId())
                 .orElseThrow(()-> new RuntimeException("Booking not found"));
 
         if(!booking.getCustomer().getId().equals(currentUser.getId())){
@@ -54,15 +51,15 @@ public class ReviewService {
         if(booking.getBookingStatus()!= BookingStatus.COMPLETED){
             throw new RuntimeException("You can Only review Completed services");
         }
-        if(reviewRepository.existsByBookingId(bookingId)){
+        if(reviewRepository.existsByBookingId(dto.getBookingId())){
             throw new RuntimeException("Review already exists");
         }
         Review review = new Review();
         review.setBooking(booking);
-        review.setRating(rating);
-        review.setComment(comment);
+        review.setRating(dto.getRating());
+        review.setComment(dto.getComment());
         Review savedReview = reviewRepository.save(review);
-        updateProviderStats(booking.getProvider(),rating);
+        updateProviderStats(booking.getProvider(),dto.getRating());
         System.out.println("Review saved");
         return savedReview;
 

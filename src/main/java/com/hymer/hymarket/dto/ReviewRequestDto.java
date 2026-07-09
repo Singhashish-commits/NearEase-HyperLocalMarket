@@ -7,7 +7,6 @@ public class ReviewRequestDto {
     private Long bookingId;
     private Integer rating ;
     private String comment;
-
 }
 
 

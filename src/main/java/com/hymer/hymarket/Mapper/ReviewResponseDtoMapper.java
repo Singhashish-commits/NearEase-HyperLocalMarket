@@ -1,6 +1,7 @@
 package com.hymer.hymarket.Mapper;
 
 import com.hymer.hymarket.dto.ReviewResponseDto;
+import com.hymer.hymarket.model.Booking;
 import com.hymer.hymarket.model.Review;
 
 public class ReviewResponseDtoMapper {
@@ -15,11 +16,17 @@ public class ReviewResponseDtoMapper {
         reviewResponseDto.setProviderReply(review.getProviderReply());
         reviewResponseDto.setRepliedAt(review.getRepliedAt());
         reviewResponseDto.setComment(review.getComment());
-        if(review.getBooking() != null && review.getBooking().getCustomer() != null && review.getBooking().getCustomer().getFirstName() != null){
+        Booking booking = review.getBooking();
+
+        if(booking.getServiceOffering().getServiceTitle() != null && !booking.getServiceOffering().getServiceTitle().isEmpty()){
+            reviewResponseDto.setServiceTitle(booking.getServiceOffering().getServiceTitle());
+        }
+        if(booking != null && booking.getCustomer() != null && booking.getCustomer().getFirstName() != null){
             reviewResponseDto.setCustomerName(review.getBooking().getCustomer().getFirstName());
         }else{
             reviewResponseDto.setCustomerName("Verified Customer");
         }
+
 
         return reviewResponseDto;
 

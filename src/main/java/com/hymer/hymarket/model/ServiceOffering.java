@@ -1,5 +1,6 @@
 package com.hymer.hymarket.model;
 
+import com.hymer.hymarket.service.ElasticsearchSyncListener;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,6 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @Entity
 @Table(name = "service_offering")
+@EntityListeners(ElasticsearchSyncListener.class)
 public class ServiceOffering {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

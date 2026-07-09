@@ -61,6 +61,11 @@ public class AdminController {
         return ResponseEntity.ok(paymentService.processRefund(bookingId));
     }
 
+    @PostMapping("/migrate-to-elastic")
+    public ResponseEntity<ApiResponse> migrateToElastic(){
+        return ResponseEntity.ok(adminService.migrateData());
+    }
+
 
 
 

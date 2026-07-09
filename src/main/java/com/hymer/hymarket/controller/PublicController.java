@@ -1,11 +1,16 @@
 package com.hymer.hymarket.controller;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.CountResponse;
+import co.elastic.clients.elasticsearch.core.InfoResponse;
+import co.elastic.clients.transport.ElasticsearchTransport;
 import com.hymer.hymarket.dto.ProviderPortfolioDto;
 import com.hymer.hymarket.dto.ServiceOfferingResponse;
 import com.hymer.hymarket.model.ServiceCategory;
 import com.hymer.hymarket.model.ServiceType;
 import com.hymer.hymarket.service.ProviderProfileService;
 import com.hymer.hymarket.service.PublicService;
+import io.jsonwebtoken.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,10 +22,12 @@ import java.util.List;
 public class PublicController {
     private PublicService publicService;
     private ProviderProfileService providerProfileService;
+    ElasticsearchClient elasticSearchClient;
     @Autowired
-    public PublicController(PublicService publicService, ProviderProfileService providerProfileService) {
+    public PublicController(PublicService publicService, ProviderProfileService providerProfileService, ElasticsearchClient elasticSearchClient) {
         this.publicService = publicService;
         this.providerProfileService = providerProfileService;
+        this.elasticSearchClient = elasticSearchClient;
     }
 
     @Autowired
@@ -58,6 +65,20 @@ public class PublicController {
     public String health() {
         return "NearEase Backend is Running ";
     }
+
+    @GetMapping("/elastic-test")
+    public String test() throws IOException {
+
+        try {
+            InfoResponse info = elasticSearchClient.info();
+            return info.version().number();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Connection Failed";
+        }
+    }
+
+
 
 
 

@@ -1,15 +1,11 @@
 package com.hymer.hymarket.service;
 
 import com.hymer.hymarket.Mapper.ProviderProfileDtoMapper;
-import com.hymer.hymarket.Repository.ProviderProfileRepository;
-import com.hymer.hymarket.Repository.RoleRepository;
-import com.hymer.hymarket.Repository.UserRepository;
+import com.hymer.hymarket.Repository.*;
 import com.hymer.hymarket.dto.ApiResponse;
 import com.hymer.hymarket.dto.ProviderPortfolioDto;
 import com.hymer.hymarket.dto.ProviderProfileDto;
-import com.hymer.hymarket.model.ProviderProfile;
-import com.hymer.hymarket.model.Roles;
-import com.hymer.hymarket.model.User;
+import com.hymer.hymarket.model.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,11 +22,16 @@ public class AdminService {
     private final  UserRepository userRepo;
     private final  ProviderProfileRepository providerRepo;
     private final  RoleRepository roleRepo;
+    private final ServiceOfferingRepo serviceOfferingRepo;
+    private final ServiceSearchRepository serviceSearchRepo;
+
     @Autowired
-    public AdminService(UserRepository userRepo, ProviderProfileRepository providerRepo, RoleRepository roleRepo) {
+    public AdminService(UserRepository userRepo, ProviderProfileRepository providerRepo, RoleRepository roleRepo, ServiceOfferingRepo serviceOfferingRepo, ServiceSearchRepository serviceSearchRepo) {
         this.userRepo = userRepo;
         this.providerRepo = providerRepo;
         this.roleRepo = roleRepo;
+        this.serviceOfferingRepo = serviceOfferingRepo;
+        this.serviceSearchRepo = serviceSearchRepo;
     }
 
 @Transactional
@@ -66,6 +67,24 @@ public class AdminService {
       List<ProviderProfile> providerProfile = providerRepo.findByIsVerified(false);
       return providerProfile.stream().map(ProviderProfileDtoMapper::mapDto).toList();
 
+    }
 
+    public ApiResponse migrateData() {
+        List<ServiceOffering> allService = serviceOfferingRepo.findAll();
+        List<ServiceOfferingIndex> indexList = allService.stream().map(offering -> {
+            ServiceOfferingIndex index = new ServiceOfferingIndex();
+            index.setId(String.valueOf(offering.getId()));
+            index.setDescription(offering.getDescription());
+            index.setPrice(offering.getPrice());
+            index.setServiceTitle(offering.getServiceTitle());
+            if (offering.getServiceType() != null) {
+//                index.setCategoryName(offering.getServiceType().getName());
+                index.setCategory(offering.getServiceType().getName());
+            }
+            return index;
+        }).toList();
+
+        serviceSearchRepo.saveAll(indexList);
+        return new ApiResponse(true,"Successfully migrated " + indexList.size() + " services to Elasticsearch!");
     }
 }

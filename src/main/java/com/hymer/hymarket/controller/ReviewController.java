@@ -22,11 +22,7 @@ public class ReviewController {
 
    @PostMapping("/new/review")
     public ResponseEntity<?> WriteNewReview(@RequestBody ReviewRequestDto review){
-        reviewService.writeReview(
-                review.getBookingId(),
-                review.getRating(),
-                review.getComment()
-        );
+        reviewService.writeReview(review);
         return ResponseEntity.ok(Map.of("message","Review successfully created!"));
    }
 
