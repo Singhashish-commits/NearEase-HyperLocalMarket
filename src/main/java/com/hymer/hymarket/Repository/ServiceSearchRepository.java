@@ -16,7 +16,7 @@ import java.util.List;
 //
 //}
 @Repository
-public interface ServiceSearchRepository extends ElasticsearchRepository<ServiceOfferingIndex,Long> {
+public interface ServiceSearchRepository extends ElasticsearchRepository<ServiceOfferingIndex,String> {
     List<ServiceOfferingIndex> findByDescriptionAndProviderProfileName(
             String description,
             String providerProfileName

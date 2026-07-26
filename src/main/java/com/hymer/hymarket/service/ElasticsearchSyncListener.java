@@ -11,12 +11,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ElasticsearchSyncListener {
-    private ServiceSearchRepository serviceSearchRepository;
+    private static ServiceSearchRepository serviceSearchRepository;
 
     @Autowired
-    @Lazy
-    public ElasticsearchSyncListener(ServiceSearchRepository serviceSearchRepository) {
-        this.serviceSearchRepository = serviceSearchRepository;
+    public void setServiceSearchRepository(ServiceSearchRepository repo) {
+        ElasticsearchSyncListener.serviceSearchRepository = repo;
     }
 
 
@@ -31,7 +30,9 @@ public class ElasticsearchSyncListener {
 
         // Assuming your Postgres entity has a getTitle() or similar method
         index.setServiceTitle(offering.getServiceTitle());
-        index.setServiceName(offering.getServiceType().getName());
+        if(offering.getServiceTitle()!=null && !offering.getServiceTitle().trim().isEmpty()){
+            index.setServiceTitle(offering.getServiceTitle());
+        }
 
         // Flattening the Category
         if (offering.getServiceType() != null) {

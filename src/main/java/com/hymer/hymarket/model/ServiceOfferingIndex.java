@@ -7,6 +7,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.GeoPointField;
+import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 
 @Data
 @AllArgsConstructor
@@ -36,6 +38,12 @@ public class ServiceOfferingIndex {
 
     @Field(type = FieldType.Keyword) // Use Keyword for exact URL strings
     private String imageUrl;
+
+    @Field(type = FieldType.Double)
+    private Double rating;
+
+    @GeoPointField
+    private GeoPoint location;
 
 
 }
