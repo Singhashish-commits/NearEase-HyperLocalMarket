@@ -58,13 +58,13 @@ public class AuthServiceTest {
     public void test_SignInOtp_EmailExists() {
         String email = "test@example.com";
         when(userRepository.existsByEmail(email)).thenReturn(true);
-
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             authService.sendSignUpOtp(email);
         });
         assertEquals("This Email is Already in use ,Please use another", exception.getMessage());
         verify(otpService, never()).sendSignUpOtp(anyString());
     }
+
     @Test
     public void test_ValidateOtp_Success() {
         String email = "test@example.com";
@@ -72,6 +72,7 @@ public class AuthServiceTest {
         authService.validateOtp(email,otp);
         verify(otpService, times(1)).validateOtp(email,otp);
     }
+
     @Test
     public void test_ValidateOtp_Failure() {
         String email= "test@example.com";
@@ -123,7 +124,6 @@ public class AuthServiceTest {
                 .thenReturn(authentication);
         Roles mockRole = new Roles();
         mockRole.setName("ROLE_USER");
-
         User mockUser = new User();
         mockUser.setId(101L);
         mockUser.setEmail("user@example.com");
@@ -137,8 +137,7 @@ public class AuthServiceTest {
         assertEquals(101L, response.getId());
         assertEquals("user@example.com", response.getEmail());
         assertTrue(response.getRoles().contains("ROLE_USER"));
-
     }
-
+//    @Test
 
 }
