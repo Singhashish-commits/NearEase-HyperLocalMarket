@@ -48,5 +48,8 @@ spring.data.redis.timeout=2000
 spring.data.redis.connect-timeout=2000
 
 spring.elasticsearch.uris=${SPRING_ELASTICSEARCH_URIS}
+spring.elasticsearch.password=${SPRING_ELASTICSEARCH_PASSWORD}
+spring.elasticsearch.username=${SPRING_ELASTICSEARCH_USERNAME}
+
 
 
